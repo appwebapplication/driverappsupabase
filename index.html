@@ -8,6 +8,9 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
 <title>TripLedger</title>
 <style>
   :root {
@@ -240,6 +243,126 @@
   .toast { position: fixed; left: 12px; right: 12px; bottom: 76px; max-width: 396px; margin: 0 auto; background: #0F172A; color: #fff; padding: 10px; border-radius: 10px; text-align: center; font-size: 14px; font-weight: 500; box-shadow: 0 8px 24px rgba(15,23,42,.3); z-index: 80; }
   .toast.ok::before { content: '✓'; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; margin-right: 8px; border-radius: 50%; background: var(--go); color: #fff; font-size: 13px; font-weight: 800; animation: pop .35s ease; }
   @keyframes pop { 0% { transform: scale(0); } 70% { transform: scale(1.25); } 100% { transform: scale(1); } }
+
+  /* ===== Redesign: Midnight Slate + Signal Orange ===== */
+  :root { --ink:#0F172A; --mute:#64748B; --bg:#F4F6F9; --line:#E2E8F0; --inp:#F4F6F9; --accent:#EA580C; --go:#059669; --stop:#E11D48; --wait:#EA580C; --mint:#ECFDF5; --fd:'Plus Jakarta Sans','Inter',system-ui,sans-serif; --shadow:0 2px 12px rgba(15,23,42,.04); }
+  body { background:#eef2f6; font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:448px; min-height:100vh; background:var(--bg); padding:20px 20px 120px; box-shadow:0 0 40px rgba(15,23,42,.08); }
+  h1, h2, .hero-id, .tc-top b, .amt, .bbig, .stat b, .tc-money b, .rt-t, .item .mid b, .rt-n, .cta, button { font-family:var(--fd); }
+  h1 { font-size:26px; font-weight:800; letter-spacing:-.4px; }
+  .head h1, #homeView .top h1 { font-size:26px; }
+  #startView .head h1, #endView .head h1, #detailView .head h1 { font-size:20px; }
+  .sub { font-size:13px; font-weight:500; }
+  .head, .top { margin-bottom:16px; }
+
+  button { border-radius:16px; padding:14px; font-weight:700; }
+  .accent { background:var(--accent); color:#fff; }
+  .ghost { background:#fff; color:var(--ink); box-shadow:inset 0 0 0 1px var(--line); }
+  .mini { border-radius:12px; padding:8px 14px; }
+  .hbtn, .back { width:40px; height:40px; min-width:40px; border-radius:50%; background:#fff; border:1px solid var(--line); color:var(--ink); box-shadow:0 4px 20px -2px rgba(15,23,42,.05); }
+  .avatar { width:40px; height:40px; border-radius:50%; font-family:var(--fd); }
+  .fdot { background:var(--accent); top:5px; right:5px; }
+
+  .card { border-radius:24px; padding:10px 20px 20px; border:1px solid rgba(226,232,240,.7); box-shadow:var(--shadow); }
+  label { font-size:11px; font-weight:700; letter-spacing:.08em; }
+  input, select { background:var(--bg); border:1px solid var(--line); border-radius:16px; padding:12px 16px; font-weight:600; }
+  input:focus, select:focus { border-color:var(--ink); box-shadow:0 0 0 3px rgba(15,23,42,.08); }
+
+  .chips { gap:6px; }
+  .chips button { border-radius:12px; padding:10px 4px; font-size:12px; font-weight:600; background:#F1F5F9; color:var(--mute); box-shadow:none; }
+  .chips button.on { background:var(--ink); color:#fff; font-weight:700; }
+  #sVeh button { padding:14px 8px; border-radius:16px; font-size:14px; font-weight:800; background:var(--bg); color:var(--ink); box-shadow:inset 0 0 0 1px var(--line); }
+  #sVeh button.on { background:var(--ink); color:#fff; box-shadow:none; }
+
+  .fpanel { background:#fff; border-radius:22px; padding:14px; margin-bottom:14px; border:1px solid var(--line); box-shadow:0 4px 20px -2px rgba(15,23,42,.05); }
+  .frow { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+  .flab { font-size:10px; font-weight:700; letter-spacing:.08em; margin:0; }
+  .freset { color:var(--accent); font-size:11px; font-weight:600; text-decoration:none; }
+  .fcur { font-size:11px; font-weight:600; color:var(--ink); }
+  .fdiv { height:1px; background:var(--line); margin:14px 0; }
+  .fpills { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+  .fpills.four { grid-template-columns:repeat(4,1fr); }
+  .fpills button { margin:0; padding:9px 4px; font-size:12px; font-weight:600; border-radius:12px; background:#F1F5F9; color:var(--mute); }
+  .fpills.acct button.on { background:var(--ink); color:#fff; font-weight:700; }
+  .fpills.per button.on { background:var(--accent); color:#fff; font-weight:700; }
+  .fpanel input[type=date] { padding:8px 12px; border-radius:12px; font-size:14px; }
+  .fline { font-size:13px; font-weight:500; }
+
+  .balcard { background:linear-gradient(135deg,#F8FAFC,#fff); border:1px solid var(--line); border-radius:26px; padding:20px; margin-top:0; box-shadow:0 4px 20px -2px rgba(15,23,42,.05); color:var(--ink); }
+  .balcard.rcv { background:linear-gradient(135deg,#ECFDF5,#E3F7ED); border-color:rgba(167,243,208,.8); }
+  .balcard.ret { background:linear-gradient(135deg,#FFF1F2,#FFE4E8); border-color:#FECDD3; }
+  .balcard .bl { font-size:11px; letter-spacing:.08em; font-weight:700; }
+  .balcard .bbig { font-size:40px; font-weight:800; letter-spacing:-1px; line-height:1; margin-top:8px; }
+  .balcard .bbig small { display:inline-block; margin-left:8px; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:700; vertical-align:middle; letter-spacing:0; background:rgba(15,23,42,.08); color:var(--ink); }
+  .balcard .bbig.pos { color:var(--go); } .balcard .bbig.pos small { background:rgba(5,150,105,.12); color:var(--go); }
+  .balcard .bbig.neg { color:var(--stop); } .balcard .bbig.neg small { background:rgba(225,29,72,.1); color:var(--stop); }
+  .balcard .bsub { gap:10px; margin-top:20px; }
+  .balcard .bsub > div { background:rgba(255,255,255,.95); border:1px solid #fff; border-radius:16px; padding:12px 16px; }
+  .balcard .bsub small { font-size:10px; letter-spacing:.08em; font-weight:700; }
+  .balcard .bsub b { font-family:var(--fd); font-size:17px; font-weight:800; margin-top:2px; display:block; }
+  .sec2 { display:flex; justify-content:space-between; align-items:center; margin:20px 4px 10px; }
+  .sec2 h2 { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--mute); }
+  .sec2 span { font-size:12px; font-weight:600; color:var(--mute); }
+  .sec h2 { font-size:14px; font-weight:800; }
+
+  .tcard { background:#fff; border:1px solid rgba(226,232,240,.7); border-radius:22px; padding:20px; margin-bottom:14px; box-shadow:var(--shadow); }
+  .tc-top b { font-size:16px; font-weight:800; letter-spacing:-.2px; }
+  .tcard > .sub { font-size:12px; margin-top:2px; }
+  .pill { padding:4px 12px; font-size:12px; }
+  .pill.done { background:var(--mint); color:var(--go); } .pill.wait { background:#FFEDD5; color:#C2410C; }
+  .erptick { width:28px; height:28px; font-size:15px; background:var(--go); }
+  .tc-money { margin-top:16px; padding-top:12px; border-top:1px solid rgba(226,232,240,.7); gap:8px; font-size:15px; }
+  .tc-money small { font-size:10px; letter-spacing:.08em; font-weight:700; }
+  .tc-money b { font-weight:800; }
+  .sbar { margin-top:14px; border-radius:12px; padding:8px 14px; font-size:12px; font-weight:700; text-align:left; }
+  .sbar.ok { background:var(--mint); border:1px solid rgba(167,243,208,.7); color:var(--go); }
+  .sbar.part { background:#FFEDD5; color:#C2410C; } .sbar.wait { background:#F1F5F9; color:var(--mute); }
+
+  .hero { background:linear-gradient(135deg,#0F172A,#1E293B,#0F172A); border-radius:24px; padding:20px; margin-bottom:14px; box-shadow:0 4px 20px -2px rgba(15,23,42,.18); }
+  .hero::before { background:radial-gradient(circle,rgba(234,88,12,.35),transparent 70%); right:-30px; top:-30px; }
+  .hero .pill.done { background:var(--go); color:#fff; } .hero .pill.wait { background:var(--accent); color:#fff; }
+  .hero-id { font-size:24px; font-weight:800; letter-spacing:-.4px; margin-top:12px; }
+  .hero-row { font-size:12px; font-weight:500; color:#CBD5E1; opacity:1; margin-top:6px; }
+  .hero.empty { background:#fff; border:1px solid rgba(226,232,240,.7); box-shadow:var(--shadow); }
+  .hero.empty .hero-id { font-size:18px; margin-top:0; }
+  .hero.empty .hero-row { color:var(--mute); font-size:13px; }
+  .hero.empty button { width:100%; margin-top:16px; border-radius:16px; padding:14px; }
+  .endpill { width:auto; margin:0 0 0 auto; padding:8px 14px; border-radius:999px; font-size:12px; background:var(--ink); color:#fff; }
+
+  .stats { gap:10px; margin-bottom:0; }
+  .stat { background:#fff; border:1px solid rgba(226,232,240,.7); border-radius:16px; padding:14px; box-shadow:var(--shadow); }
+  .stat span { font-size:10px; letter-spacing:.08em; font-weight:700; }
+  .stat b { font-size:16px; font-weight:800; margin-top:4px; }
+
+  .seg { background:rgba(226,232,240,.75); border-radius:16px; padding:6px; margin:16px 0 12px; }
+  .seg-thumb { top:6px; bottom:6px; left:6px; width:calc((100% - 12px) / 3); border-radius:12px; box-shadow:0 1px 3px rgba(15,23,42,.12); }
+  .seg button { border-radius:12px; padding:10px 4px; font-size:12px; font-weight:600; }
+  .seg button.on { font-weight:700; }
+
+  .item { background:#fff; border:1px solid rgba(226,232,240,.7); border-radius:16px; padding:16px; margin-bottom:10px; gap:12px; box-shadow:var(--shadow); }
+  .ico { border-radius:16px; }
+  .ico.a { background:var(--mint); border:1px solid rgba(167,243,208,.7); font-size:18px; }
+  .ico.e { background:var(--bg); border:1px solid var(--line); }
+  .item .mid b { font-weight:800; }
+  .item .r { font-size:12px; font-weight:500; }
+
+  .rt { gap:12px; padding-bottom:12px; }
+  .rt::before { left:15px; top:32px; }
+  .rt-n { width:32px; height:32px; font-size:12px; font-weight:800; background:var(--ink); }
+  .rt-n.s { background:var(--go); } .rt-n.e { background:var(--stop); } .rt-n.w { background:var(--accent); }
+  .rt-b { border-radius:16px; padding:16px; border:1px solid rgba(226,232,240,.7); box-shadow:var(--shadow); }
+  .rt-k { font-size:10px; letter-spacing:.08em; }
+  .rt-t { font-size:14px; font-weight:800; }
+  .cta { display:flex; align-items:center; justify-content:center; gap:6px; width:100%; margin-top:14px; background:var(--accent); color:#fff; border-radius:16px; padding:14px; font-size:14px; font-weight:700; box-shadow:0 1px 3px rgba(15,23,42,.12); }
+
+  .nav { left:50%; right:auto; transform:translateX(-50%); width:100%; max-width:448px; padding:8px 16px; gap:4px; background:rgba(255,255,255,.95); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border-top:1px solid var(--line); box-shadow:0 -6px 24px rgba(15,23,42,.07); }
+  .nav button { max-width:none; border-radius:16px; padding:8px 12px; }
+  .nav button span { font-size:11px; font-weight:600; margin-top:2px; }
+  .nav button.on { background:var(--ink); color:#fff; }
+  .nav button.on span { border-bottom:0; font-weight:700; }
+  .actbar { display:none !important; }
+
+  .toast { left:50%; right:auto; transform:translateX(-50%); width:auto; max-width:90vw; border-radius:999px; padding:10px 18px; font-size:12px; font-weight:600; bottom:92px; }
 </style>
 </head>
 <body>
@@ -325,6 +448,7 @@
       <div class="head">
         <button class="back" id="dBack" onclick="detailBack()">←</button>
         <h1 id="dTitle">Trip details</h1>
+        <button id="dEnd" class="endpill hide" type="button">End Trip</button>
       </div>
       <div id="tbody"></div>
     </div>
@@ -743,21 +867,22 @@ function drawProfile(){
   A=r2(A); E=r2(E); var B=r2(A-E); C=r2(C); P=r2(P);
   var S=r2(B-C), clab=C>0.004?'To return':C<-0.004?'To receive':(Math.abs(S)>0.004?'Settled ✓':'Nothing due');
   var show=list.filter(function(t){ return !PF.erp||(PF.erp==='yes'?!!t.erp:(!t.erp&&!t.running)); });
-  function echip(v,l){ return '<button class="'+(PF.erp===v?'on':'')+'" style="font-size:13px" onclick="setPE(\''+v+'\')">'+l+'</button>'; }
-  function chip(m,l){ return '<button class="'+(PF.mode===m?'on':'')+'" style="font-size:13px" onclick="setPF(\''+m+'\')">'+l+'</button>'; }
+  function echip(v,l){ return '<button class="'+(PF.erp===v?'on':'')+'" onclick="setPE(\''+v+'\')">'+l+'</button>'; }
+  function chip(m,l){ return '<button class="'+(PF.mode===m?'on':'')+'" onclick="setPF(\''+m+'\')">'+l+'</button>'; }
   $('pAv').textContent=d.driver.letter;
   $('pmInfo').innerHTML='<div style="padding:6px 8px 8px"><b style="font-size:16px">'+esc(d.driver.name||d.driver.first)+'</b><div class="sub">'+esc(d.driver.id)+' · '+d.tripCount+' trip'+(d.tripCount===1?'':'s')+' in total</div></div>';
   var filtOn=PF.mode!=='month'||!!PF.erp;
   $('pFiltDot').classList.toggle('hide',!filtOn);
   $('profBody').innerHTML =
     (PF.bar?'<div class="fpanel">'+
-      '<div class="flab">Period</div>'+
-      '<div class="chips" style="grid-template-columns:1fr 1fr 1fr 52px">'+chip('month','This month')+chip('last','Last month')+chip('all','All')+chip('custom','📅')+'</div>'+
+      '<div class="frow"><span class="flab">Accounts</span><a href="#" class="freset" onclick="resetF();return false">↺ Reset</a></div>'+
+      '<div class="fpills acct">'+echip('','All trips')+echip('no','Not entered')+echip('yes','✓ Entered')+'</div>'+
+      '<div class="fdiv"></div>'+
+      '<div class="frow"><span class="flab">📅 Date range</span><span class="fcur">'+({month:'This month',last:'Last month',all:'All time',custom:'Custom range'}[PF.mode]||'')+'</span></div>'+
+      '<div class="fpills per four">'+chip('month','This month')+chip('last','Last month')+chip('all','All dates')+chip('custom','Custom')+'</div>'+
       (PF.mode==='custom'?'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">'+
         '<div><label for="pfFrom">From</label><input type="date" id="pfFrom" value="'+esc(PF.from)+'" onchange="setPFdates()"></div>'+
         '<div><label for="pfTo">To</label><input type="date" id="pfTo" value="'+esc(PF.to)+'" onchange="setPFdates()"></div></div>':'')+
-      '<div class="flab" style="margin-top:14px">Accounts</div>'+
-      '<div class="chips" style="grid-template-columns:1fr 1fr 1fr">'+echip('','All trips')+echip('no','Not entered')+echip('yes','✓ Entered')+'</div>'+
     '</div>':
     '<div class="fline">'+pLabel(r)+(PF.erp?' · '+(PF.erp==='yes'?'Entered':'Not entered'):'')+(PLOAD?' · loading older trips...':'')+(filtOn?' · <a href="#" onclick="resetF();return false">reset</a>':'')+'</div>')+
     '<div class="balcard '+(C>0.004?'ret':C<-0.004?'rcv':'')+'"><div class="bhead"><span class="bl">Current balance · '+list.length+' trip'+(list.length===1?'':'s')+'</span></div>'+
@@ -768,7 +893,7 @@ function drawProfile(){
         '<div><small>Settled</small><b>'+rupee(Math.abs(S))+'</b></div><div><small>Total KM</small><b>'+kmf(K)+' km</b></div>'+
       '</div>'+
     '</div>'+
-    '<div style="height:10px"></div>'+
+    '<div class="sec2"><h2>Trip Breakdown</h2><span>Showing '+show.length+' trip'+(show.length===1?'':'s')+'</span></div>'+
     (show.length?show.map(function(t){ return tripCard(t,'p'); }).join(''):'<div class="empty-note">'+(list.length?'No trips match this filter.':'No trips in this period.')+'</div>');
 }
 
@@ -830,13 +955,7 @@ function setTab(k){
   tl.innerHTML=listHtml(t);
   fabUpdate();
 }
-function fabUpdate(){
-  var f=$('fab'), t=(CUR==='detail'&&CURT&&!$('appBox').classList.contains('hide'))?findTrip(CURT):null;
-  if(!t){ f.classList.add('hide'); return; }
-  f.innerHTML=(t.running?'<button onclick="fabAdd(\'stp\')">+ Stop</button>':'')+
-    '<button class="accent" onclick="fabAdd(\'exp\')">+ Expense</button>';
-  f.classList.remove('hide');
-}
+function fabUpdate(){ $('fab').classList.add('hide'); }   // add buttons now sit at the bottom of each tab list
 function fabAdd(k){
   if(!CURT) return;
   if(k==='stp') openStop(CURT); else if(k==='adv') openAdv(CURT); else openExp(CURT);
@@ -845,13 +964,13 @@ function listHtml(t){
   var st=t.stops||[], q=esc(jq(t.id));
   var list;
   if(TAB==='stp'){
-    list=routeHtml(t);
+    list=routeHtml(t)+(t.running?'<button class="cta" onclick="openStop(CURT)">＋ Add Stop</button>':'');
   } else if(TAB==='adv'){
     list=t.advList.length?t.advList.map(function(a){
       return '<div class="item'+(a.pending?' tmp':'')+'"><div class="ico a">💰</div><div class="mid"><b>'+rupee(a.amt)+'</b><div>'+
         esc(a.mode)+(a.remarks?' · '+esc(a.remarks):'')+'</div></div><div class="r">'+(a.pending?'sending…':sdate(a.date))+'</div></div>';
     }).join(''):'<div class="empty-note">No advances yet.</div>';
-    list='<button class="ghost" style="margin:0 0 10px" onclick="openAdv(CURT)">+ Add advance</button>'+list;
+    list+='<button class="cta" onclick="openAdv(CURT)">＋ Advance</button>';
   } else {
     list=t.expList.length?t.expList.map(function(e){
       var n=rcount(e), word=n>1?' receipts':' receipt';
@@ -863,6 +982,7 @@ function listHtml(t){
             (n?' · <a href="#" onclick="showRc(\''+esc(jq(e.id))+'\');return false">'+n+word+'</a>':''))+
         '</div></div><div class="r"><b style="font-size:17px">'+rupee(e.amt)+'</b></div></div>';
     }).join(''):'<div class="empty-note">No expenses yet.</div>';
+    list+='<button class="cta" onclick="openExp(CURT)">＋ Expense</button>';
   }
 
   return list;
@@ -873,6 +993,7 @@ function drawDetail(id){
   if(!t){ showHome(); return; }
   $('dBack').classList.toggle('hide',!!t.running); $('dTitle').textContent=t.running?'Current trip':'Trip details';
   var st=t.stops||[], q=esc(jq(t.id));
+  var de=$('dEnd'); de.classList.toggle('hide',!t.running); de.onclick=function(){ endTrip(t.id); };
   var km=t.running?'Start '+esc(t.sk)+' km':esc(t.sk)+' → '+esc(t.ek)+' km ('+esc(t.tk)+' km)';
   var tabs=[['stp','Route',st.length],['adv','Advances',t.advList.length],['exp','Expenses',t.expList.length]];
 
@@ -884,7 +1005,7 @@ function drawDetail(id){
       (t.route?'<div class="hero-row" style="font-weight:600">🛣 '+esc(t.route)+'</div>':'')+
       (t.erp?'<div class="hero-row" style="font-weight:700">✓ Entered in accounts · '+dd(t.erp)+'</div>':'')+
       '<div class="hero-row hero-line"><span>'+dt(t.start)+' · '+km+'</span>'+
-        (t.running?'<button class="accent mini" onclick="endTrip(\''+q+'\')">End trip</button>':'')+'</div>'+
+        ''+'</div>'+
     '</div>'+
     '<div class="stats">'+
       '<div class="stat"><span>Advances</span><b>'+rupee(t.adv)+'</b></div>'+
