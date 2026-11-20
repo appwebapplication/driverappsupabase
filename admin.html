@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -112,9 +110,8 @@
 
 <script>
 /* ---------- Supabase connection (same two values as index.html) ---------- */
-var SB_URL='https://fjcboitywnifzyarjgkr.supabase.co';        // for example https://abcdxyz.supabase.co
-var SB_KEY='sb_publishable_o0UCetA6Uv-bV8OJ-4RLgA_4Zr9_ZFV';    // the anon / publishable key (safe to keep in this page)
-
+var SB_URL='PASTE_PROJECT_URL';
+var SB_KEY='PASTE_ANON_PUBLIC_KEY';
 
 function $(i){return document.getElementById(i);}
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){return null;}}
@@ -163,7 +160,7 @@ function logout(msg){
 }
 
 /* ---------- app shell ---------- */
-var TABS=[['home','Home'],['stl','Settlements'],['trips','Trips'],['export','Export'],['setup','Setup']];
+var TABS=[['home','Home'],['stl','Settlements'],['trips','Trips'],['setup','Setup']];
 var VIEW='home', LISTS=null, HOME=null;
 function start(){
   $('login').classList.add('hide'); $('app').classList.remove('hide'); $('who').textContent=NAME;
@@ -173,7 +170,7 @@ function go(v){
   VIEW=v;
   $('nav').innerHTML=TABS.map(function(t){return '<button class="'+(t[0]===v?'on':'')+'" onclick="go(\''+t[0]+'\')">'+t[1]+'</button>';}).join('');
   $('main').innerHTML='<div class="empty">Loading...</div>';
-  ({home:drawHome,stl:drawStl,trips:drawTrips,export:drawExport,setup:drawSetup})[v]();
+  ({home:drawHome,stl:drawStl,trips:drawTrips,setup:drawSetup})[v]();
 }
 function drivOpts(sel,all){ return (all?'<option value="">All drivers</option>':'')+LISTS.drivers.map(function(d){return '<option value="'+esc(d.id)+'"'+(d.id===sel?' selected':'')+'>'+esc(d.id)+' · '+esc(d.name)+'</option>';}).join(''); }
 function vehOpts(sel,all){ return (all?'<option value="">All vehicles</option>':'')+LISTS.vehicles.map(function(d){return '<option value="'+esc(d.id)+'"'+(d.id===sel?' selected':'')+'>'+esc(d.id)+'</option>';}).join(''); }
@@ -188,6 +185,8 @@ function drawHome(){
       '<div class="stat"><span>Advance</span><b>'+rupee(m.adv)+'</b></div><div class="stat"><span>Expense</span><b>'+rupee(m.exp)+'</b></div></div>';
     h+='<div class="sec"><h2>Waiting for approval ('+r.pending.length+')</h2></div>';
     h+=r.pending.length?r.pending.map(function(s){return stlCard(s,true);}).join(''):'<div class="card empty">Nothing waiting.</div>';
+    h+='<div class="sec"><h2>Waiting for ERP entry ('+r.toPost.length+')</h2><button class="sm ghost" onclick="TF.erp=\'no\';TF.from=\'\';go(\'trips\')">See all in Trips</button></div>';
+    h+=r.toPost.length?'<div class="tw"><table><tr><th>Trip</th><th>Driver</th><th>Vehicle</th><th>Ended</th><th class="r">Expense</th></tr>'+r.toPost.slice(0,15).map(function(t){return '<tr class="click" onclick="openTrip(\''+esc(t.id)+'\')"><td><b>'+esc(t.id)+'</b></td><td>'+esc(t.driver)+'</td><td>'+esc(t.veh)+'</td><td class="nw">'+dt(t.end)+'</td><td class="r">'+rupee(t.exp)+'</td></tr>';}).join('')+'</table></div>'+(r.toPost.length>15?'<div class="sub" style="margin-top:6px">Showing 15 of '+r.toPost.length+'.</div>':''):'<div class="card empty">All finished trips are entered.</div>';
     h+='<div class="sec"><h2>Running now ('+r.running.length+')</h2></div>';
     h+=r.running.length?'<div class="tw"><table><tr><th>Trip</th><th>Driver</th><th>Vehicle</th><th>Started</th><th>Route</th><th class="r">Advance</th><th class="r">Expense</th><th class="r">Stops</th></tr>'+
       r.running.map(function(t){return '<tr class="click" onclick="openTrip(\''+esc(t.id)+'\')"><td><b>'+esc(t.id)+'</b></td><td>'+esc(t.driver)+'</td><td>'+esc(t.veh)+'</td><td class="nw">'+dt(t.start)+'</td><td>'+esc(t.route||t.place)+'</td><td class="r">'+rupee(t.adv)+'</td><td class="r">'+rupee(t.exp)+'</td><td class="r">'+t.stops+'</td></tr>';}).join('')+'</table></div>':'<div class="card empty">No trip is running.</div>';
@@ -251,7 +250,7 @@ function newEntry(driver){
 }
 
 /* ---------- TRIPS ---------- */
-var TF={from:monthStart(),to:'',driver:'',vehicle:'',status:''}, TRIPS=[];
+var TF={from:monthStart(),to:'',driver:'',vehicle:'',status:'',erp:''}, TRIPS=[];
 function tripFilters(){
   return '<div class="card"><div class="filters">'+
     '<div><label>From (trip start)</label><input type="date" id="t_from" value="'+TF.from+'"></div>'+
@@ -259,19 +258,20 @@ function tripFilters(){
     '<div><label>Driver</label><select id="t_drv">'+drivOpts(TF.driver,true)+'</select></div>'+
     '<div><label>Vehicle</label><select id="t_veh">'+vehOpts(TF.vehicle,true)+'</select></div>'+
     '<div><label>Status</label><select id="t_st"><option value="">All</option><option value="running"'+(TF.status==='running'?' selected':'')+'>Running</option><option value="done"'+(TF.status==='done'?' selected':'')+'>Finished</option></select></div>'+
+    '<div><label>ERP entry</label><select id="t_erp"><option value="">All</option><option value="no"'+(TF.erp==='no'?' selected':'')+'>Not entered</option><option value="yes"'+(TF.erp==='yes'?' selected':'')+'>Entered</option></select></div>'+
     '<div style="flex:none"><button onclick="applyTF()">Show</button></div></div></div>';
 }
-function applyTF(){ TF={from:$('t_from').value,to:$('t_to').value,driver:$('t_drv').value,vehicle:$('t_veh').value,status:$('t_st').value}; drawTrips(); }
+function applyTF(){ TF={from:$('t_from').value,to:$('t_to').value,driver:$('t_drv').value,vehicle:$('t_veh').value,status:$('t_st').value,erp:$('t_erp').value}; drawTrips(); }
 function drawTrips(){
   A('trips',TF).then(function(r){
     TRIPS=r.trips; var a=0,e=0,k=0,rem=0;
     TRIPS.forEach(function(t){a+=t.adv;e+=t.exp;k+=Number(t.tk)||0;});
     var h=tripFilters()+'<div class="sec"><h2>'+TRIPS.length+' trip'+(TRIPS.length===1?'':'s')+(TRIPS.length>=500?' (first 500)':'')+'</h2>'+
       '<div class="sub">KM <b>'+kmf(k)+'</b> · Advance <b>'+rupee(a)+'</b> · Expense <b>'+rupee(e)+'</b> · Balance <b>'+rupee(a-e)+'</b></div></div>';
-    h+=TRIPS.length?'<div class="tw"><table><tr><th>Trip</th><th>Driver</th><th>Veh</th><th>Started</th><th>Route</th><th class="r">KM</th><th class="r">Advance</th><th class="r">Expense</th><th class="r">Balance</th><th>Settled</th></tr>'+
+    h+=TRIPS.length?'<div class="tw"><table><tr><th>Trip</th><th>Driver</th><th>Veh</th><th>Started</th><th>Route</th><th class="r">KM</th><th class="r">Advance</th><th class="r">Expense</th><th class="r">Balance</th><th>Settled</th><th>ERP</th></tr>'+
       TRIPS.map(function(t){
         var st=t.running?'<span class="pill run">Running</span>':(Math.abs(t.rem)<0.005&&Math.abs(t.bal)>0.004?'<span class="pill done">Settled</span>':(Math.abs(t.sa)>0.004?'<span class="pill wait">Part · left '+rupee(Math.abs(t.rem))+'</span>':(t.pend>0?'<span class="pill wait">Waiting</span>':'')));
-        return '<tr class="click" onclick="openTrip(\''+esc(t.id)+'\')"><td><b>'+esc(t.id)+'</b></td><td>'+esc(t.driver)+'</td><td>'+esc(t.veh)+'</td><td class="nw">'+dt(t.start)+'</td><td>'+esc(t.route)+'</td><td class="r">'+(t.running?'':kmf(t.tk))+'</td><td class="r">'+rupee(t.adv)+'</td><td class="r">'+rupee(t.exp)+'</td><td class="r '+(t.bal>=0?'pos':'neg')+'">'+rupee(t.bal)+'</td><td>'+st+'</td></tr>';
+        return '<tr class="click" onclick="openTrip(\''+esc(t.id)+'\')"><td><b>'+esc(t.id)+'</b></td><td>'+esc(t.driver)+'</td><td>'+esc(t.veh)+'</td><td class="nw">'+dt(t.start)+'</td><td>'+esc(t.route)+'</td><td class="r">'+(t.running?'':kmf(t.tk))+'</td><td class="r">'+rupee(t.adv)+'</td><td class="r">'+rupee(t.exp)+'</td><td class="r '+(t.bal>=0?'pos':'neg')+'">'+rupee(t.bal)+'</td><td>'+st+'</td><td>'+(t.erp?'<span class="pill done">Entered</span>':(t.running?'':'<span class="pill wait">Not entered</span>'))+'</td></tr>';
       }).join('')+'</table></div>':'<div class="card empty">No trips for this filter.</div>';
     $('main').innerHTML=h;
   }).catch(fail);
@@ -289,9 +289,9 @@ function drawTrip(){
   var pill=t.running?'<span class="pill run">Running</span>':'<span class="pill done">Finished</span>';
   h+='<div class="box"><div class="head"><div><h1>'+esc(t.id)+' '+pill+'</h1><div class="sub">'+esc(t.driver)+' ('+esc(t.driverId)+') · '+esc(t.veh)+(t.route?' · '+esc(t.route):'')+'</div>'+
     '<div class="sub">'+dt(t.start)+(t.end?' → '+dt(t.end):'')+' · KM '+kmf(t.sk)+(t.ek!=null?' → '+kmf(t.ek)+' ('+kmf(t.tk)+' km)':'')+'</div>'+
-    (t.sname||t.ename?'<div class="sub">'+esc(t.sname||'-')+(t.ename?' → '+esc(t.ename):'')+'</div>':'')+'</div><button class="ghost" onclick="closeTrip()">Close</button></div>';
+    (t.erp?'<div class="sub okc"><b>Entered in ERP</b> · '+dt(t.erp)+' · '+esc(t.erpBy)+'</div>':'')+(t.sname||t.ename?'<div class="sub">'+esc(t.sname||'-')+(t.ename?' → '+esc(t.ename):'')+'</div>':'')+'</div><button class="ghost" onclick="closeTrip()">Close</button></div>';
   h+='<div class="row" style="margin-bottom:12px"><button class="sm" onclick="editTrip()">Edit trip</button>'+(t.running?'<button class="sm acc" onclick="endTripAdmin()">End trip</button>':'')+
-    '<button class="sm ghost" onclick="dlErp()"'+(t.running?' disabled title="Trip is still running"':'')+'>ERP CSV</button><button class="sm bad" onclick="delTrip()">Delete trip</button></div>';
+    (t.erp?'<button class="sm ghost" onclick="markErp(false)">Remove ERP mark</button>':'<button class="sm good" onclick="markErp(true)"'+(t.running?' disabled title="End the trip first"':'')+'>Mark as entered in ERP</button>')+'<button class="sm ghost" onclick="dlErp()"'+(t.running?' disabled title="Trip is still running"':'')+'>ERP CSV</button><button class="sm bad" onclick="delTrip()">Delete trip</button></div>';
   h+='<div class="grid g4"><div class="stat"><span>Advance</span><b>'+rupee(t.adv)+'</b></div><div class="stat"><span>Expense</span><b>'+rupee(t.exp)+'</b></div>'+
     '<div class="stat"><span>Balance</span><b class="'+(t.bal>=0?'pos':'neg')+'">'+rupee(t.bal)+'</b></div>'+
     '<div class="stat"><span>Settled</span><b>'+rupee(Math.abs(t.sa))+'</b><div class="sub">Left '+rupee(Math.abs(t.rem))+(t.pend>0?' · waiting '+rupee(t.pend):'')+'</div></div></div>';
@@ -395,6 +395,13 @@ function dlErp(){
   a.href=URL.createObjectURL(new Blob([text],{type:'text/csv;charset=utf-8'})); a.download='Accounting_Entries_'+t.id+'.csv';
   document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},800);
   toast('Downloaded '+a.download);
+}
+
+
+function markErp(on){
+  var t=T.trip;
+  if(!on&&!confirm('Remove the ERP mark? The driver will no longer see "Entered in accounts".')) return;
+  A('erp',{id:t.id,mark:on}).then(function(r){ if(!r.ok){toast(r.msg);return;} toast(on?'Marked as entered in ERP':'ERP mark removed'); reloadTrip(); }).catch(fail);
 }
 
 /* ---------- photos ---------- */
