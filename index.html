@@ -469,8 +469,8 @@
 /* ---------- server calls (Supabase) ----------
    The app calls SQL functions in your Supabase project with the same names and answers as before.
    Fill in the two lines below (Supabase > Project Settings > API). */
-var SB_URL='https://fjcboitywnifzyarjgkr.supabase.co';        // for example https://abcdxyz.supabase.co
-var SB_KEY='sb_publishable_o0UCetA6Uv-bV8OJ-4RLgA_4Zr9_ZFV';    // the anon / publishable key (safe to keep in this page)
+var SB_URL='PASTE_PROJECT_URL';        // for example https://abcdxyz.supabase.co
+var SB_KEY='PASTE_ANON_PUBLIC_KEY';    // the anon / publishable key (safe to keep in this page)
 
 var RPC={
   login:['api_login',['p_user','p_pin']],
@@ -610,6 +610,7 @@ function rupee(n){return '₹'+money(n);}
 function sdate(ms){return ms?new Date(ms).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}):'';}
 function r2(n){return Math.round(n*100)/100;}
 function dt(ms){return ms?new Date(ms).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'-';}
+function dd(ms){return ms?new Date(ms).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}):'';}
 function mapUrl(l){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(l);}
 function cls(b){return b>=0?'pos':'neg';}
 function toast(t){var e=$('toast');e.textContent=t;e.classList.remove('hide');setTimeout(function(){e.classList.add('hide');},2500);}
@@ -676,6 +677,7 @@ function tripCard(t,from){
     '</div>'+
     (t.sa?(function(){ var left=Math.abs(r2(t.bal+t.sa)); return '<div class="sbar '+(left<0.005?'ok':'part')+'">'+(left<0.005?'✓ ':'')+'Settled '+rupee(Math.abs(t.sa))+' · Left '+rupee(left)+'</div>'; })():'')+
     (t.pend>0.004?'<div class="sbar wait">'+rupee(t.pend)+' waiting for approval</div>':'')+
+    (t.erp?'<div class="sbar ok">✓ Entered in accounts · '+dd(t.erp)+'</div>':'')+
     '</div>';
 }
 
@@ -860,6 +862,7 @@ function drawDetail(id){
       '<div class="hero-top"><span class="pill '+(t.running?'wait':'done')+'">'+(t.running?'● In progress':'✓ Completed')+'</span><span class="hero-veh">'+esc(t.vno)+'</span></div>'+
       '<div class="hero-id">'+esc(t.id)+'</div>'+
       (t.route?'<div class="hero-row" style="font-weight:600">🛣 '+esc(t.route)+'</div>':'')+
+      (t.erp?'<div class="hero-row" style="font-weight:700">✓ Entered in accounts · '+dd(t.erp)+'</div>':'')+
       '<div class="hero-row hero-line"><span>'+dt(t.start)+' · '+km+'</span>'+
         (t.running?'<button class="accent mini" onclick="endTrip(\''+q+'\')">End trip</button>':'')+'</div>'+
     '</div>'+
