@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -369,7 +371,7 @@ function delPhoto(id,seq){
 
 
 /* ---------- ERP CSV (ERPNext "Bulk Edit Accounting Entries") for one finished trip ---------- */
-var ERP_CC='Main - RFPL', ERP_SUFFIX=' - RFPL', ERP_NO_SUFFIX={'Cleaner Batha':1};
+var ERP_CC='Main - RFPL', ERP_SUFFIX=' - RFPL', ERP_NO_SUFFIX={};
 function erpAcct(cat){ return ERP_NO_SUFFIX[cat]?cat:cat+ERP_SUFFIX; }
 function dlErp(){
   var t=T.trip;
