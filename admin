@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="robots" content="noindex">
+<title>TripLedger Admin</title>
+<style>
+  :root { --ink:#0F172A; --ink2:#334155; --mute:#64748B; --bg:#F1F5F9; --card:#fff; --line:#E2E8F0; --inp:#F8FAFC;
+          --accent:#F59E0B; --go:#10B981; --wait:#F97316; --stop:#EF4444; --ind:#4338CA; --r:12px;
+          --shadow:0 1px 2px rgba(15,23,42,.04),0 4px 12px rgba(15,23,42,.05); }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.4 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; }
+  .hide { display:none !important; }
+  h1 { font-size:20px; margin:0; } h2 { font-size:15px; margin:0; } h3 { font-size:14px; margin:0; }
+  .sub { color:var(--mute); font-size:13px; }
+  .pos { color:var(--go); } .neg { color:var(--stop); } .okc { color:var(--go); }
+  button { font:inherit; font-weight:600; border:0; border-radius:9px; padding:9px 14px; cursor:pointer; background:var(--ink); color:#fff; }
+  button:disabled { opacity:.5; cursor:default; }
+  button.ghost { background:#fff; color:var(--ink2); box-shadow:inset 0 0 0 1.5px var(--line); }
+  button.acc { background:var(--accent); color:var(--ink); }
+  button.good { background:var(--go); } button.bad { background:var(--stop); }
+  button.sm { padding:5px 10px; font-size:13px; border-radius:7px; }
+  input, select, textarea { font:inherit; width:100%; padding:9px 11px; border:1.5px solid var(--line); border-radius:8px; background:var(--inp); color:var(--ink); }
+  input:focus, select:focus { outline:none; border-color:var(--ink); background:#fff; }
+  input[type=checkbox] { width:20px; height:20px; padding:0; }
+  label { display:block; font-size:12px; font-weight:600; color:var(--mute); text-transform:uppercase; letter-spacing:.4px; margin:10px 0 4px; }
+  .err { color:var(--stop); font-weight:500; margin-top:8px; }
+
+  #login { max-width:340px; margin:12vh auto 0; padding:0 16px; }
+  .card { background:var(--card); border-radius:var(--r); padding:14px 16px; box-shadow:var(--shadow); }
+  header { position:sticky; top:0; z-index:20; background:var(--ink); color:#fff; }
+  .hin { max-width:1100px; margin:0 auto; padding:10px 14px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .brand { font-weight:800; font-size:16px; letter-spacing:-.3px; }
+  nav { display:flex; gap:4px; flex:1; overflow-x:auto; }
+  nav button { background:transparent; color:#CBD5E1; padding:7px 12px; }
+  nav button.on { background:rgba(255,255,255,.14); color:#fff; }
+  .who { font-size:13px; color:#CBD5E1; display:flex; align-items:center; gap:10px; }
+  .who button { background:rgba(255,255,255,.12); padding:5px 10px; font-size:13px; }
+  main { max-width:1100px; margin:0 auto; padding:14px 14px 60px; }
+  .grid { display:grid; gap:12px; }
+  .g4 { grid-template-columns:repeat(4,1fr); } .g2 { grid-template-columns:repeat(2,1fr); } .g3 { grid-template-columns:repeat(3,1fr); }
+  @media (max-width:760px){ .g4,.g3 { grid-template-columns:repeat(2,1fr); } .g2 { grid-template-columns:1fr; } }
+  .stat { background:var(--card); border-radius:var(--r); padding:12px 14px; box-shadow:var(--shadow); }
+  .stat span { display:block; font-size:12px; font-weight:600; color:var(--mute); text-transform:uppercase; letter-spacing:.3px; }
+  .stat b { display:block; font-size:22px; font-weight:800; margin-top:2px; letter-spacing:-.5px; }
+  .sec { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:20px 0 8px; flex-wrap:wrap; }
+  .tw { background:var(--card); border-radius:var(--r); box-shadow:var(--shadow); overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; }
+  th { text-align:left; font-size:12px; color:var(--mute); text-transform:uppercase; letter-spacing:.3px; padding:9px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  td { padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  tr:last-child td { border-bottom:0; }
+  tr.click { cursor:pointer; } tr.click:hover td { background:var(--inp); }
+  td.r, th.r { text-align:right; } td.nw { white-space:nowrap; }
+  .pill { display:inline-block; padding:2px 9px; border-radius:12px; font-size:12px; font-weight:700; white-space:nowrap; }
+  .pill.wait { background:rgba(249,115,22,.16); color:var(--wait); } .pill.done { background:rgba(16,185,129,.16); color:var(--go); }
+  .pill.bad { background:rgba(239,68,68,.14); color:var(--stop); } .pill.run { background:rgba(67,56,202,.12); color:var(--ind); }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; }
+  .chips button { background:#fff; color:var(--ink2); box-shadow:inset 0 0 0 1.5px var(--line); padding:6px 12px; }
+  .chips button.on { background:var(--ink); color:#fff; box-shadow:none; }
+  .filters { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
+  .filters > div { min-width:130px; flex:1; max-width:200px; }
+  .filters label { margin-top:0; }
+  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .scard { background:var(--card); border-radius:var(--r); padding:12px 14px; box-shadow:var(--shadow); margin-bottom:8px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .scard .grow { flex:1; min-width:200px; }
+  .amt { font-size:18px; font-weight:800; letter-spacing:-.3px; }
+  .empty { color:var(--mute); padding:14px; }
+
+  .ov { position:fixed; inset:0; z-index:50; background:rgba(15,23,42,.55); overflow-y:auto; padding:16px; }
+  .ov.top { z-index:60; }
+  .box { background:var(--bg); border-radius:16px; max-width:900px; margin:0 auto; padding:16px; box-shadow:0 20px 50px rgba(15,23,42,.35); }
+  .box.sm { max-width:420px; background:#fff; }
+  .box .head { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:10px; }
+  .thumbs { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+  .thumb { position:relative; }
+  .thumb img { width:64px; height:64px; object-fit:cover; border-radius:8px; display:block; box-shadow:var(--shadow); }
+  .thumb button { position:absolute; top:-6px; right:-6px; width:20px; height:20px; padding:0; border-radius:50%; background:var(--stop); font-size:11px; line-height:20px; }
+  pre { background:var(--inp); border-radius:8px; padding:10px; overflow:auto; max-height:260px; font-size:12px; margin:6px 0; }
+  .toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:var(--ink); color:#fff; padding:10px 16px; border-radius:10px; z-index:90; font-weight:500; max-width:90vw; }
+  .tabs { display:flex; gap:6px; flex-wrap:wrap; margin:6px 0 12px; }
+  a { color:var(--ind); font-weight:600; }
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="row" style="margin-bottom:14px"><div style="font-size:30px">🚚</div><div><h1>TripLedger Admin</h1><div class="sub">Sign in with your admin user and PIN.</div></div></div>
+  <div class="card">
+    <label for="lu" style="margin-top:0">User</label><input id="lu" autocomplete="username">
+    <label for="lp">PIN</label><input id="lp" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button id="lb" style="width:100%;margin-top:14px" onclick="doLogin()">Sign in</button>
+    <div id="lm" class="err"></div>
+  </div>
+</div>
+
+<div id="app" class="hide">
+  <header><div class="hin">
+    <div class="brand">🚚 TripLedger Admin</div>
+    <nav id="nav"></nav>
+    <div class="who"><span id="who"></span><button onclick="logout()">Sign out</button></div>
+  </div></header>
+  <main id="main"></main>
+</div>
+
+<div id="panel" class="ov hide"></div>
+<div id="dlg" class="ov top hide"></div>
+<div id="toast" class="toast hide"></div>
+
+<script>
+/* ---------- Supabase connection (same two values as index.html) ---------- */
+var SB_URL='PASTE_PROJECT_URL';
+var SB_KEY='PASTE_ANON_PUBLIC_KEY';
+
+function $(i){return document.getElementById(i);}
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){return null;}}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function money(n){return Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2});}
+function rupee(n){return '₹'+money(n);}
+function kmf(n){return (Math.round((Number(n)||0)*100)/100).toLocaleString('en-IN');}
+function dt(ms){return ms?new Date(ms).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'-';}
+function dd(ms){return ms?new Date(ms).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'-';}
+function r2(n){return Math.round(n*100)/100;}
+function toast(t){var e=$('toast');e.textContent=t;e.classList.remove('hide');clearTimeout(toast.t);toast.t=setTimeout(function(){e.classList.add('hide');},3200);}
+function ymd(d){var m=d.getMonth()+1,x=d.getDate();return d.getFullYear()+'-'+(m<10?'0':'')+m+'-'+(x<10?'0':'')+x;}
+function monthStart(){var n=new Date();return ymd(new Date(n.getFullYear(),n.getMonth(),1));}
+function localDT(ms){if(!ms)return '';var d=new Date(ms),p=function(n){return (n<10?'0':'')+n;};return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());}
+
+/* ---------- server ---------- */
+function hdrs(){var h={'apikey':SB_KEY,'Content-Type':'application/json'};if(/^eyJ/.test(SB_KEY))h['Authorization']='Bearer '+SB_KEY;return h;}
+function rpc(fn,body){
+  if(String(SB_URL).indexOf('PASTE')===0||String(SB_KEY).indexOf('PASTE')===0) return Promise.reject(new Error('SB_URL / SB_KEY are not set in admin.html'));
+  return fetch(SB_URL+'/rest/v1/rpc/'+fn,{method:'POST',headers:hdrs(),body:JSON.stringify(body)})
+    .then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error((j&&(j.message||j.hint))||'Server error');return j;});});
+}
+var TOK=ls('adm_token'), NAME=ls('adm_name')||'';
+/* A('home') / A('trips',{filters}) -> calls api_admin_<name> */
+function A(name,p){
+  var body={p_token:TOK}; if(p!==undefined) body.p=p;
+  return rpc('api_admin_'+name,body).then(function(r){
+    if(r&&r.expired){logout('Session expired. Sign in again.');throw new Error('expired');}
+    return r;
+  });
+}
+function fail(e){ if(e&&e.message!=='expired') toast(e.message||'Something went wrong'); }
+
+/* ---------- login ---------- */
+function doLogin(){
+  var b=$('lb'); b.disabled=true; b.textContent='Signing in...'; $('lm').textContent='';
+  rpc('api_admin_login',{p_user:$('lu').value,p_pin:$('lp').value}).then(function(r){
+    b.disabled=false; b.textContent='Sign in';
+    if(!r.ok){ $('lm').textContent=r.msg; return; }
+    TOK=r.token; NAME=r.name; ls('adm_token',TOK); ls('adm_name',NAME); $('lp').value=''; start();
+  }).catch(function(e){ b.disabled=false; b.textContent='Sign in'; $('lm').textContent=e.message; });
+}
+function logout(msg){
+  TOK=''; ls('adm_token',null); $('app').classList.add('hide'); $('login').classList.remove('hide');
+  $('panel').classList.add('hide'); $('dlg').classList.add('hide'); $('lm').textContent=msg||'';
+}
+
+/* ---------- app shell ---------- */
+var TABS=[['home','Home'],['stl','Settlements'],['trips','Trips'],['export','Export'],['setup','Setup']];
+var VIEW='home', LISTS=null, HOME=null;
+function start(){
+  $('login').classList.add('hide'); $('app').classList.remove('hide'); $('who').textContent=NAME;
+  A('setup',{kind:'list'}).then(function(r){ if(r.ok){ LISTS=r; go(VIEW); } }).catch(fail);
+}
+function go(v){
+  VIEW=v;
+  $('nav').innerHTML=TABS.map(function(t){return '<button class="'+(t[0]===v?'on':'')+'" onclick="go(\''+t[0]+'\')">'+t[1]+'</button>';}).join('');
+  $('main').innerHTML='<div class="empty">Loading...</div>';
+  ({home:drawHome,stl:drawStl,trips:drawTrips,export:drawExport,setup:drawSetup})[v]();
+}
+function drivOpts(sel,all){ return (all?'<option value="">All drivers</option>':'')+LISTS.drivers.map(function(d){return '<option value="'+esc(d.id)+'"'+(d.id===sel?' selected':'')+'>'+esc(d.id)+' · '+esc(d.name)+'</option>';}).join(''); }
+function vehOpts(sel,all){ return (all?'<option value="">All vehicles</option>':'')+LISTS.vehicles.map(function(d){return '<option value="'+esc(d.id)+'"'+(d.id===sel?' selected':'')+'>'+esc(d.id)+'</option>';}).join(''); }
+function balLabel(rem){ return rem>0.004?'<span class="neg">To return '+rupee(rem)+'</span>':rem<-0.004?'<span class="pos">To receive '+rupee(-rem)+'</span>':'<span class="sub">Clear</span>'; }
+
+/* ---------- HOME ---------- */
+function drawHome(){
+  A('home').then(function(r){
+    HOME=r; var m=r.month, h='';
+    h+='<div class="sub" style="margin-bottom:8px">This month · by trip start date</div>'+
+      '<div class="grid g4"><div class="stat"><span>Trips</span><b>'+m.trips+'</b></div><div class="stat"><span>Total KM</span><b>'+kmf(m.km)+'</b></div>'+
+      '<div class="stat"><span>Advance</span><b>'+rupee(m.adv)+'</b></div><div class="stat"><span>Expense</span><b>'+rupee(m.exp)+'</b></div></div>';
+    h+='<div class="sec"><h2>Waiting for approval ('+r.pending.length+')</h2></div>';
+    h+=r.pending.length?r.pending.map(function(s){return stlCard(s,true);}).join(''):'<div class="card empty">Nothing waiting.</div>';
+    h+='<div class="sec"><h2>Running now ('+r.running.length+')</h2></div>';
+    h+=r.running.length?'<div class="tw"><table><tr><th>Trip</th><th>Driver</th><th>Vehicle</th><th>Started</th><th>Route</th><th class="r">Advance</th><th class="r">Expense</th><th class="r">Stops</th></tr>'+
+      r.running.map(function(t){return '<tr class="click" onclick="openTrip(\''+esc(t.id)+'\')"><td><b>'+esc(t.id)+'</b></td><td>'+esc(t.driver)+'</td><td>'+esc(t.veh)+'</td><td class="nw">'+dt(t.start)+'</td><td>'+esc(t.route||t.place)+'</td><td class="r">'+rupee(t.adv)+'</td><td class="r">'+rupee(t.exp)+'</td><td class="r">'+t.stops+'</td></tr>';}).join('')+'</table></div>':'<div class="card empty">No trip is running.</div>';
+    var tr=0,tv=0; r.balances.forEach(function(b){ if(b.rem>0)tr+=b.rem; else tv+=-b.rem; });
+    h+='<div class="sec"><h2>Driver balances</h2><div class="sub">To return <b class="neg">'+rupee(tr)+'</b> · To receive <b class="pos">'+rupee(tv)+'</b></div></div>';
+    h+='<div class="tw"><table><tr><th>Driver</th><th class="r">Trips</th><th>Balance</th><th class="r">Waiting</th><th></th></tr>'+
+      r.balances.map(function(b){return '<tr><td><b>'+esc(b.id)+'</b> · '+esc(b.name)+'</td><td class="r">'+b.trips+'</td><td>'+balLabel(b.rem)+'</td><td class="r">'+(b.pend>0?rupee(b.pend):'')+'</td><td class="r">'+(Math.abs(b.rem)>0.004?'<button class="sm acc" onclick="newEntry(\''+esc(b.id)+'\')">Settle</button>':'')+'</td></tr>';}).join('')+'</table></div>';
+    $('main').innerHTML=h;
+  }).catch(fail);
+}
+
+/* ---------- SETTLEMENTS ---------- */
+var SF={status:'Submitted',driver:''};
+function stlCard(s,acts){
+  var pc=s.status==='Approved'?'done':s.status==='Rejected'?'bad':'wait';
+  var what=s.type==='Return'?'Driver returns':'Company pays';
+  var trips=s.trips.length>3?s.trips.length+' trips':s.trips.map(function(t){return esc(t.t);}).join(', ');
+  var b='';
+  if(acts){
+    if(s.status!=='Approved') b+='<button class="sm good" onclick="setStl(\''+esc(s.id)+'\',\'Approved\')">Approve</button> ';
+    if(s.status!=='Rejected') b+='<button class="sm bad" onclick="setStl(\''+esc(s.id)+'\',\'Rejected\')">Reject</button>';
+  }
+  return '<div class="scard"><div class="grow"><div class="row"><span class="amt">'+rupee(s.amt)+'</span><span class="pill '+pc+'">'+esc(s.status)+'</span></div>'+
+    '<div><b>'+esc(s.driver)+'</b> · '+what+' · '+esc(s.mode)+(s.other?' ('+esc(s.other)+')':'')+'</div>'+
+    '<div class="sub">'+dt(s.date)+' · by '+esc(s.by||'-')+(trips?' · '+trips:'')+(s.remarks?' · '+esc(s.remarks):'')+'</div></div><div class="row">'+b+'</div></div>';
+}
+function drawStl(){
+  var chips=['Submitted','Approved','Rejected',''].map(function(s){return '<button class="'+(SF.status===s?'on':'')+'" onclick="SF.status=\''+s+'\';drawStl()">'+(s||'All')+'</button>';}).join('');
+  A('settlements',{status:SF.status,driver:SF.driver}).then(function(r){
+    $('main').innerHTML='<div class="row" style="justify-content:space-between;margin-bottom:12px"><div class="chips">'+chips+'</div>'+
+      '<div class="row"><select style="width:190px" onchange="SF.driver=this.value;drawStl()">'+drivOpts(SF.driver,true)+'</select><button class="acc" onclick="newEntry(\'\')">+ New entry</button></div></div>'+
+      (r.list.length?r.list.map(function(s){return stlCard(s,true);}).join(''):'<div class="card empty">No settlements here.</div>');
+  }).catch(fail);
+}
+function setStl(id,st){
+  if(st==='Rejected'&&!confirm('Reject this settlement?')) return;
+  A('settle_status',{id:id,status:st}).then(function(r){
+    if(!r.ok){ toast(r.msg); return; } toast('Marked '+st); go(VIEW);
+  }).catch(fail);
+}
+function newEntry(driver){
+  A('home').then(function(h){
+    HOME=h;
+    var modes=LISTS.setModes;
+    openForm('New settlement entry',[
+      {k:'driver',l:'Driver',t:'select',h:drivOpts(driver,false)},
+      {k:'info',t:'note'},
+      {k:'mode',l:'Mode',t:'select',o:modes,v:modes[0]},
+      {k:'other',l:'Other driver (only for mode Other Driver)',t:'select',h:'<option value="">-</option>'+drivOpts('',false)},
+      {k:'amount',l:'Amount (empty = the full balance)',t:'number'},
+      {k:'remarks',l:'Remarks (optional)',t:'text'}
+    ],function(v){
+      return A('add_settlement',{driver:v.driver,mode:v.mode,other:v.mode==='Other Driver'?v.other:'',amount:v.amount,remarks:v.remarks});
+    },function(){ go(VIEW); toast('Settlement saved and approved'); },
+    function(){ // show the driver's balance under the driver box
+      var sel=$('f_driver'), n=$('f_info');
+      function upd(){ var b=HOME.balances.filter(function(x){return x.id===sel.value;})[0]; n.innerHTML=b?'Balance: '+balLabel(b.rem):''; }
+      sel.onchange=upd; upd();
+    });
+  }).catch(fail);
+}
+
+/* ---------- TRIPS ---------- */
+var TF={from:monthStart(),to:'',driver:'',vehicle:'',status:''}, TRIPS=[];
+function tripFilters(){
+  return '<div class="card"><div class="filters">'+
+    '<div><label>From (trip start)</label><input type="date" id="t_from" value="'+TF.from+'"></div>'+
+    '<div><label>To</label><input type="date" id="t_to" value="'+TF.to+'"></div>'+
+    '<div><label>Driver</label><select id="t_drv">'+drivOpts(TF.driver,true)+'</select></div>'+
+    '<div><label>Vehicle</label><select id="t_veh">'+vehOpts(TF.vehicle,true)+'</select></div>'+
+    '<div><label>Status</label><select id="t_st"><option value="">All</option><option value="running"'+(TF.status==='running'?' selected':'')+'>Running</option><option value="done"'+(TF.status==='done'?' selected':'')+'>Finished</option></select></div>'+
+    '<div style="flex:none"><button onclick="applyTF()">Show</button></div></div></div>';
+}
+function applyTF(){ TF={from:$('t_from').value,to:$('t_to').value,driver:$('t_drv').value,vehicle:$('t_veh').value,status:$('t_st').value}; drawTrips(); }
+function drawTrips(){
+  A('trips',TF).then(function(r){
+    TRIPS=r.trips; var a=0,e=0,k=0,rem=0;
+    TRIPS.forEach(function(t){a+=t.adv;e+=t.exp;k+=Number(t.tk)||0;});
+    var h=tripFilters()+'<div class="sec"><h2>'+TRIPS.length+' trip'+(TRIPS.length===1?'':'s')+(TRIPS.length>=500?' (first 500)':'')+'</h2>'+
+      '<div class="sub">KM <b>'+kmf(k)+'</b> · Advance <b>'+rupee(a)+'</b> · Expense <b>'+rupee(e)+'</b> · Balance <b>'+rupee(a-e)+'</b></div></div>';
+    h+=TRIPS.length?'<div class="tw"><table><tr><th>Trip</th><th>Driver</th><th>Veh</th><th>Started</th><th>Route</th><th class="r">KM</th><th class="r">Advance</th><th class="r">Expense</th><th class="r">Balance</th><th>Settled</th></tr>'+
+      TRIPS.map(function(t){
+        var st=t.running?'<span class="pill run">Running</span>':(Math.abs(t.rem)<0.005&&Math.abs(t.bal)>0.004?'<span class="pill done">Settled</span>':(Math.abs(t.sa)>0.004?'<span class="pill wait">Part · left '+rupee(Math.abs(t.rem))+'</span>':(t.pend>0?'<span class="pill wait">Waiting</span>':'')));
+        return '<tr class="click" onclick="openTrip(\''+esc(t.id)+'\')"><td><b>'+esc(t.id)+'</b></td><td>'+esc(t.driver)+'</td><td>'+esc(t.veh)+'</td><td class="nw">'+dt(t.start)+'</td><td>'+esc(t.route)+'</td><td class="r">'+(t.running?'':kmf(t.tk))+'</td><td class="r">'+rupee(t.adv)+'</td><td class="r">'+rupee(t.exp)+'</td><td class="r '+(t.bal>=0?'pos':'neg')+'">'+rupee(t.bal)+'</td><td>'+st+'</td></tr>';
+      }).join('')+'</table></div>':'<div class="card empty">No trips for this filter.</div>';
+    $('main').innerHTML=h;
+  }).catch(fail);
+}
+
+/* ---------- one trip (panel) ---------- */
+var T=null;
+function openTrip(id){
+  A('trip',{id:id}).then(function(r){ if(!r.ok){toast(r.msg);return;} T=r; drawTrip(); $('panel').classList.remove('hide'); }).catch(fail);
+}
+function closeTrip(){ $('panel').classList.add('hide'); if(VIEW==='trips'||VIEW==='home') go(VIEW); }
+function reloadTrip(){ A('trip',{id:T.trip.id}).then(function(r){ if(r.ok){T=r;drawTrip();} }).catch(fail); }
+function drawTrip(){
+  var t=T.trip, h='';
+  var pill=t.running?'<span class="pill run">Running</span>':'<span class="pill done">Finished</span>';
+  h+='<div class="box"><div class="head"><div><h1>'+esc(t.id)+' '+pill+'</h1><div class="sub">'+esc(t.driver)+' ('+esc(t.driverId)+') · '+esc(t.veh)+(t.route?' · '+esc(t.route):'')+'</div>'+
+    '<div class="sub">'+dt(t.start)+(t.end?' → '+dt(t.end):'')+' · KM '+kmf(t.sk)+(t.ek!=null?' → '+kmf(t.ek)+' ('+kmf(t.tk)+' km)':'')+'</div>'+
+    (t.sname||t.ename?'<div class="sub">'+esc(t.sname||'-')+(t.ename?' → '+esc(t.ename):'')+'</div>':'')+'</div><button class="ghost" onclick="closeTrip()">Close</button></div>';
+  h+='<div class="row" style="margin-bottom:12px"><button class="sm" onclick="editTrip()">Edit trip</button>'+(t.running?'<button class="sm acc" onclick="endTripAdmin()">End trip</button>':'')+
+    '<button class="sm bad" onclick="delTrip()">Delete trip</button></div>';
+  h+='<div class="grid g4"><div class="stat"><span>Advance</span><b>'+rupee(t.adv)+'</b></div><div class="stat"><span>Expense</span><b>'+rupee(t.exp)+'</b></div>'+
+    '<div class="stat"><span>Balance</span><b class="'+(t.bal>=0?'pos':'neg')+'">'+rupee(t.bal)+'</b></div>'+
+    '<div class="stat"><span>Settled</span><b>'+rupee(Math.abs(t.sa))+'</b><div class="sub">Left '+rupee(Math.abs(t.rem))+(t.pend>0?' · waiting '+rupee(t.pend):'')+'</div></div></div>';
+  h+='<div class="sec"><h2>Advances</h2><button class="sm acc" onclick="addAdv()">+ Add advance</button></div>';
+  h+=T.advances.length?'<div class="tw"><table><tr><th>Date</th><th class="r">Amount</th><th>Mode</th><th>Remarks</th><th></th></tr>'+T.advances.map(function(x){
+    return '<tr><td class="nw">'+dt(x.date)+'</td><td class="r"><b>'+rupee(x.amt)+'</b></td><td>'+esc(x.mode)+'</td><td>'+esc(x.remarks)+'</td><td class="r nw"><button class="sm ghost" onclick="editAdv(\''+esc(x.id)+'\')">Edit</button> <button class="sm bad" onclick="delItem(\'advance\',\''+esc(x.id)+'\')">Delete</button></td></tr>';}).join('')+'</table></div>':'<div class="card empty">No advances.</div>';
+  h+='<div class="sec"><h2>Expenses</h2><div class="row"><button class="sm ghost" onclick="dlAll()">Download all photos</button><button class="sm acc" onclick="addExp()">+ Add expense</button></div></div>';
+  h+=T.expenses.length?'<div class="tw"><table><tr><th>Date</th><th>Category</th><th class="r">Amount</th><th>Receipts</th><th></th></tr>'+T.expenses.map(function(x){
+    var th=x.photos.map(function(p){return '<div class="thumb"><img src="'+esc(p.url)+'" alt="Receipt" loading="lazy" style="cursor:zoom-in" onclick="viewPhoto(\''+esc(p.url)+'\')"><button title="Remove photo" onclick="delPhoto(\''+esc(x.id)+'\','+p.seq+')">✕</button><a href="#" style="font-size:12px;display:block;text-align:center;margin-top:3px" onclick="dlPhoto(\''+esc(p.url)+'\',\''+esc(T.trip.id+'_'+x.cat.replace(/[^A-Za-z0-9]+/g,'-')+'_'+p.seq)+'.jpg\');return false">Download</a></div>';}).join('');
+    return '<tr><td class="nw">'+dt(x.date)+'</td><td>'+esc(x.cat)+'</td><td class="r"><b>'+rupee(x.amt)+'</b></td><td><div class="thumbs">'+th+'</div></td><td class="r nw"><button class="sm ghost" onclick="editExp(\''+esc(x.id)+'\')">Edit</button> <button class="sm bad" onclick="delItem(\'expense\',\''+esc(x.id)+'\')">Delete</button></td></tr>';}).join('')+'</table></div>':'<div class="card empty">No expenses.</div>';
+  h+='<div class="sec"><h2>Route stops</h2></div>';
+  h+=T.stops.length?'<div class="tw"><table><tr><th>#</th><th>Customer</th><th>Time</th><th>Place</th><th>Returned</th><th>Notes</th><th></th></tr>'+T.stops.map(function(x){
+    return '<tr><td>'+x.seq+'</td><td><b>'+esc(x.cust)+'</b></td><td class="nw">'+dt(x.ts)+'</td><td>'+esc(x.place)+(x.loc?' <a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(x.loc)+'">map</a>':'')+'</td><td>'+(x.ret?'Yes':'No')+'</td><td>'+esc(x.notes)+'</td><td class="r nw"><button class="sm ghost" onclick="editStop(\''+esc(x.id)+'\')">Edit</button> <button class="sm bad" onclick="delItem(\'stop\',\''+esc(x.id)+'\')">Delete</button></td></tr>';}).join('')+'</table></div>':'<div class="card empty">No stops.</div>';
+  if(T.settlements.length){
+    h+='<div class="sec"><h2>Settlements on this trip</h2></div><div class="tw"><table><tr><th>Settlement</th><th>Date</th><th>Status</th><th class="r">Applied</th></tr>'+T.settlements.map(function(s){
+      return '<tr><td>'+esc(s.id)+'</td><td>'+dt(s.date)+'</td><td>'+esc(s.status)+'</td><td class="r">'+rupee(s.a)+'</td></tr>';}).join('')+'</table></div>';
+  }
+  h+='</div>';
+  $('panel').innerHTML=h;
+}
+function editApi(kind,op,id,f,extra){
+  var p={kind:kind,op:op,id:id,f:f}; if(extra) for(var k in extra) p[k]=extra[k];
+  return A('edit',p);
+}
+function afterEdit(){ reloadTrip(); toast('Saved'); }
+function editTrip(){
+  var t=T.trip, f=[
+    {k:'route_name',l:'Route name',t:'text',v:t.route},
+    {k:'vehicle_id',l:'Vehicle',t:'select',h:vehOpts(t.veh,false)},
+    {k:'start_km',l:'Start KM',t:'number',v:t.sk},
+    {k:'start_time',l:'Start time',t:'dt',v:t.start}];
+  if(!t.running){ f.push({k:'end_km',l:'End KM',t:'number',v:t.ek}); f.push({k:'end_time',l:'End time',t:'dt',v:t.end}); }
+  f.push({k:'start_place',l:'Start place name',t:'text',v:t.sname}); if(!t.running) f.push({k:'end_place',l:'End place name',t:'text',v:t.ename});
+  openForm('Edit trip',f,function(v){ return editApi('trip','update',t.id,v); },afterEdit);
+}
+function endTripAdmin(){
+  var t=T.trip;
+  openForm('End trip '+t.id,[{k:'end_km',l:'End KM (Start was '+kmf(t.sk)+')',t:'number'}],function(v){ return editApi('trip','end',t.id,{end_km:v.end_km}); },afterEdit);
+}
+function delTrip(){
+  var t=T.trip;
+  if(!confirm('Delete trip '+t.id+' with all its advances, expenses and stops? This cannot be undone (a copy is kept in the audit log).')) return;
+  editApi('trip','delete',t.id,{}).then(function(r){ if(!r.ok){toast(r.msg);return;} toast('Trip deleted'); $('panel').classList.add('hide'); go(VIEW); }).catch(fail);
+}
+function addAdv(){
+  openForm('Add advance',[{k:'amount',l:'Amount',t:'number'},{k:'mode',l:'Mode',t:'select',o:T.lists.modes},{k:'remarks',l:'Remarks',t:'text'},{k:'date',l:'Date & time',t:'dt',v:Date.now()}],
+    function(v){ return editApi('advance','add','',v,{trip:T.trip.id}); },afterEdit);
+}
+function editAdv(id){
+  var x=T.advances.filter(function(a){return a.id===id;})[0];
+  openForm('Edit advance',[{k:'amount',l:'Amount',t:'number',v:x.amt},{k:'mode',l:'Mode',t:'select',o:T.lists.modes,v:x.mode},{k:'remarks',l:'Remarks',t:'text',v:x.remarks},{k:'date',l:'Date & time',t:'dt',v:x.date}],
+    function(v){ return editApi('advance','update',id,v); },afterEdit);
+}
+function addExp(){
+  openForm('Add expense',[{k:'amount',l:'Amount',t:'number'},{k:'cat',l:'Category',t:'select',o:T.lists.accounts},{k:'date',l:'Date & time',t:'dt',v:Date.now()}],
+    function(v){ return editApi('expense','add','',v,{trip:T.trip.id}); },afterEdit);
+}
+function editExp(id){
+  var x=T.expenses.filter(function(a){return a.id===id;})[0];
+  openForm('Edit expense',[{k:'amount',l:'Amount',t:'number',v:x.amt},{k:'cat',l:'Category',t:'select',o:T.lists.accounts,v:x.cat},{k:'date',l:'Date & time',t:'dt',v:x.date}],
+    function(v){ return editApi('expense','update',id,v); },afterEdit);
+}
+function editStop(id){
+  var x=T.stops.filter(function(a){return a.id===id;})[0];
+  openForm('Edit stop',[{k:'cust',l:'Customer',t:'select',o:T.lists.customers,v:x.cust},{k:'place',l:'Place name',t:'text',v:x.place},{k:'notes',l:'Notes',t:'text',v:x.notes},{k:'ret',l:'Is returned',t:'check',v:x.ret}],
+    function(v){ return editApi('stop','update',id,v); },afterEdit);
+}
+function delItem(kind,id){
+  if(!confirm('Delete this '+kind+'? This cannot be undone (a copy is kept in the audit log).')) return;
+  editApi(kind,'delete',id,{}).then(function(r){ if(!r.ok){toast(r.msg);return;} afterEdit(); }).catch(fail);
+}
+function delPhoto(id,seq){
+  if(!confirm('Remove this receipt photo?')) return;
+  editApi('expense','delete_photo',id,{seq:seq}).then(function(r){ if(!r.ok){toast(r.msg);return;} afterEdit(); }).catch(fail);
+}
+
+
+/* ---------- photos ---------- */
+function viewPhoto(u){
+  $('dlg').innerHTML='<div class="box sm" style="max-width:720px;text-align:center"><img src="'+esc(u)+'" alt="Receipt" style="max-width:100%;max-height:75vh;border-radius:8px"><div class="row" style="margin-top:12px;justify-content:center"><button onclick="dlPhoto(\''+esc(u)+'\',\'receipt.jpg\')">Download</button><button class="ghost" onclick="closeForm()">Close</button></div></div>';
+  $('dlg').classList.remove('hide');
+}
+function dlPhoto(url,name){
+  return fetch(url).then(function(r){if(!r.ok)throw new Error('Photo not found');return r.blob();}).then(function(b){
+    var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},800);
+  }).catch(function(e){toast(e.message||'Download failed');});
+}
+function dlAll(){
+  var list=[]; T.expenses.forEach(function(x){x.photos.forEach(function(p){list.push([p.url,T.trip.id+'_'+x.cat.replace(/[^A-Za-z0-9]+/g,'-')+'_'+p.seq+'.jpg']);});});
+  if(!list.length){toast('No photos on this trip');return;}
+  toast('Downloading '+list.length+' photo'+(list.length>1?'s':'')+'...');
+  list.reduce(function(p,it){return p.then(function(){return dlPhoto(it[0],it[1]);}).then(function(){return new Promise(function(r){setTimeout(r,400);});});},Promise.resolve());
+}
+
+/* ---------- generic form dialog ---------- */
+function openForm(title,fields,onSave,onDone,onOpen){
+  var h='<div class="box sm"><div class="head"><h2>'+esc(title)+'</h2></div>';
+  fields.forEach(function(f){
+    var id='f_'+f.k;
+    if(f.t==='note'){ h+='<div id="'+id+'" class="sub" style="margin-top:6px"></div>'; return; }
+    if(f.t==='check'){ h+='<label style="display:flex;gap:10px;align-items:center;text-transform:none;font-size:14px;color:var(--ink)"><input type="checkbox" id="'+id+'"'+(f.v?' checked':'')+'>'+esc(f.l)+'</label>'; return; }
+    h+='<label for="'+id+'">'+esc(f.l)+'</label>';
+    if(f.t==='select'){
+      var o=f.h!==undefined?f.h:(f.o||[]).map(function(x){return '<option'+(x===f.v?' selected':'')+'>'+esc(x)+'</option>';}).join('');
+      h+='<select id="'+id+'">'+o+'</select>';
+    } else if(f.t==='dt') h+='<input id="'+id+'" type="datetime-local" value="'+localDT(f.v)+'">';
+    else if(f.t==='number') h+='<input id="'+id+'" type="number" step="any" inputmode="decimal" value="'+esc(f.v==null?'':f.v)+'">';
+    else h+='<input id="'+id+'" type="'+(f.t==='password'?'password':'text')+'" value="'+esc(f.v==null?'':f.v)+'"'+(f.ph?' placeholder="'+esc(f.ph)+'"':'')+'>';
+  });
+  h+='<div id="f_err" class="err"></div><div class="row" style="margin-top:14px"><button id="f_ok">Save</button><button class="ghost" onclick="closeForm()">Cancel</button></div></div>';
+  $('dlg').innerHTML=h; $('dlg').classList.remove('hide');
+  if(onOpen) onOpen();
+  $('f_ok').onclick=function(){
+    var v={}, b=$('f_ok');
+    fields.forEach(function(f){
+      if(f.t==='note') return; var e=$('f_'+f.k);
+      v[f.k]= f.t==='check'?e.checked : f.t==='dt'?(e.value?new Date(e.value).getTime():null) : e.value;
+    });
+    b.disabled=true; b.textContent='Saving...'; $('f_err').textContent='';
+    onSave(v).then(function(r){
+      if(!r.ok){ b.disabled=false; b.textContent='Save'; $('f_err').textContent=r.msg||'Not saved'; return; }
+      closeForm(); onDone(r);
+    }).catch(function(e){ b.disabled=false; b.textContent='Save'; $('f_err').textContent=e.message; });
+  };
+}
+function closeForm(){ $('dlg').classList.add('hide'); }
+
+/* ---------- EXPORT ---------- */
+var XF={from:monthStart(),to:'',driver:'',vehicle:''};
+var DATASETS=[['trips','Trips','Every trip with KM, advance, expense and balance'],['advances','Advances','Each advance with driver and trip'],['expenses','Expenses','Each expense with category and receipt links'],
+              ['categories','Expenses by category','Totals per driver and category'],['stops','Route stops','Customer stops with place and time'],['settlements','Settlements','All settlement entries (filter uses the settlement date)']];
+function drawExport(){
+  var h='<div class="card"><div class="filters">'+
+    '<div><label>From</label><input type="date" id="x_from" value="'+XF.from+'"></div><div><label>To</label><input type="date" id="x_to" value="'+XF.to+'"></div>'+
+    '<div><label>Driver</label><select id="x_drv">'+drivOpts(XF.driver,true)+'</select></div><div><label>Vehicle</label><select id="x_veh">'+vehOpts(XF.vehicle,true)+'</select></div></div>'+
+    '<div class="sub" style="margin-top:8px">Dates filter by trip start date (settlements by settlement date).</div></div>';
+  h+='<div class="sec"><h2>Download CSV</h2></div><div class="grid g3">'+DATASETS.map(function(d){
+    return '<div class="card"><h3>'+d[1]+'</h3><div class="sub" style="margin:4px 0 10px">'+d[2]+'</div><button onclick="exportCsv(\''+d[0]+'\',this)">Download CSV</button></div>';}).join('')+
+    '<div class="card"><h3>ERP journal CSV</h3><div class="sub" style="margin:4px 0 0">One trip at a time for ERPNext. Coming next, once the exact CSV columns are confirmed.</div></div></div>';
+  $('main').innerHTML=h;
+}
+function readXF(){ XF={from:$('x_from').value,to:$('x_to').value,driver:$('x_drv').value,vehicle:$('x_veh').value}; return XF; }
+function csvCell(v){ v=v==null?'':String(v); return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+function download(name,cols,rows){
+  var t='﻿'+[cols].concat(rows).map(function(r){return r.map(csvCell).join(',');}).join('\r\n');
+  var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([t],{type:'text/csv;charset=utf-8'})); a.download=name; document.body.appendChild(a); a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},500);
+}
+function exportCsv(kind,btn){
+  var f=readXF(); btn.disabled=true; var old=btn.textContent; btn.textContent='Preparing...';
+  var done=function(){btn.disabled=false;btn.textContent=old;};
+  var stamp=(f.from||'start')+'_to_'+(f.to||'today');
+  if(kind==='trips'){
+    A('trips',{from:f.from,to:f.to,driver:f.driver,vehicle:f.vehicle,status:''}).then(function(r){
+      done();
+      var cols=['Trip_ID','Driver_ID','Driver','Vehicle','Route','Start','End','Start_KM','End_KM','Total_KM','Start_Place','End_Place','Advance','Expense','Balance','Settled','Left','Status'];
+      var rows=r.trips.map(function(t){return [t.id,t.driverId,t.driver,t.veh,t.route,t.start?new Date(t.start).toLocaleString('en-GB'):'',t.end?new Date(t.end).toLocaleString('en-GB'):'',t.sk,t.ek==null?'':t.ek,t.tk==null?'':t.tk,t.sname,t.ename,t.adv,t.exp,t.bal,Math.abs(t.sa),t.running?'':Math.abs(t.rem),t.running?'Running':'Finished'];});
+      if(!rows.length){toast('No data for this filter');return;} download('trips_'+stamp+'.csv',cols,rows);
+    }).catch(function(e){done();fail(e);});
+    return;
+  }
+  A('export',{kind:kind,from:f.from,to:f.to,driver:f.driver,vehicle:f.vehicle}).then(function(r){
+    done(); if(!r.ok){toast(r.msg);return;} if(!r.rows.length){toast('No data for this filter');return;}
+    download(kind+'_'+stamp+'.csv',r.cols,r.rows);
+  }).catch(function(e){done();fail(e);});
+}
+
+/* ---------- SETUP ---------- */
+var SU='drivers';
+function drawSetup(){
+  A('setup',{kind:'list'}).then(function(r){ LISTS=r; drawSetupBody(); }).catch(fail);
+}
+function drawSetupBody(){
+  var tabs=[['drivers','Drivers'],['admins','Admins'],['vehicles','Vehicles'],['customers','Customers'],['accounts','Expense categories'],['lists','Modes'],['audit','Audit log']];
+  var h='<div class="tabs">'+tabs.map(function(t){return '<button class="'+(SU===t[0]?'':'ghost')+'" onclick="SU=\''+t[0]+'\';drawSetupBody()">'+t[1]+'</button>';}).join('')+'</div>';
+  var L=LISTS;
+  if(SU==='drivers'){
+    h+='<div class="row" style="justify-content:flex-end;margin-bottom:8px"><button class="acc" onclick="editDriver(\'\')">+ Add driver</button></div><div class="tw"><table><tr><th>ID</th><th>Name</th><th>User</th><th>Status</th><th>ERP advance account</th><th></th></tr>'+
+      L.drivers.map(function(d){return '<tr><td>'+esc(d.id)+'</td><td><b>'+esc(d.name)+'</b></td><td>'+esc(d.username)+'</td><td><span class="pill '+(d.status==='Active'?'done':'bad')+'">'+esc(d.status)+'</span></td><td>'+esc(d.account)+'</td><td class="r"><button class="sm ghost" onclick="editDriver(\''+esc(d.id)+'\')">Edit</button></td></tr>';}).join('')+'</table></div>';
+  } else if(SU==='admins'){
+    h+='<div class="row" style="justify-content:flex-end;margin-bottom:8px"><button class="acc" onclick="editAdmin(\'\')">+ Add admin</button></div><div class="tw"><table><tr><th>ID</th><th>Name</th><th>User</th><th>Status</th><th></th></tr>'+
+      L.admins.map(function(d){return '<tr><td>'+esc(d.id)+'</td><td><b>'+esc(d.name)+'</b></td><td>'+esc(d.username)+'</td><td><span class="pill '+(d.status==='Active'?'done':'bad')+'">'+esc(d.status)+'</span></td><td class="r"><button class="sm ghost" onclick="editAdmin(\''+esc(d.id)+'\')">Edit</button></td></tr>';}).join('')+'</table></div>';
+  } else if(SU==='vehicles'){
+    h+='<div class="row" style="justify-content:flex-end;margin-bottom:8px"><button class="acc" onclick="editVeh(\'\')">+ Add vehicle</button></div><div class="tw"><table><tr><th>ID</th><th>Number</th><th>Type</th><th class="r">Baseline KM</th><th>Status</th><th></th></tr>'+
+      L.vehicles.map(function(d){return '<tr><td><b>'+esc(d.id)+'</b></td><td>'+esc(d.no)+'</td><td>'+esc(d.type)+'</td><td class="r">'+kmf(d.base)+'</td><td><span class="pill '+(d.status==='Active'?'done':'bad')+'">'+esc(d.status)+'</span></td><td class="r"><button class="sm ghost" onclick="editVeh(\''+esc(d.id)+'\')">Edit</button></td></tr>';}).join('')+'</table></div>';
+  } else if(SU==='customers'){
+    h+='<div class="card"><div class="row"><input id="newc" placeholder="New customer name" style="flex:1"><button class="acc" onclick="addName(\'customer\',\'newc\')">Add</button></div></div>'+
+      '<div class="sub" style="margin:8px 0">'+L.customers.length+' customers</div><div class="tw"><table>'+
+      L.customers.map(function(c,i){return '<tr><td>'+esc(c)+'</td><td class="r"><button class="sm bad" onclick="delName(\'customer\','+i+')">Delete</button></td></tr>';}).join('')+'</table></div>';
+  } else if(SU==='accounts'){
+    h+='<div class="card"><div class="row"><input id="newa" placeholder="New expense category" style="flex:1"><button class="acc" onclick="addName(\'account\',\'newa\')">Add</button></div>'+
+      '<div class="sub" style="margin-top:6px">A category used by expenses cannot be deleted.</div></div><div class="tw" style="margin-top:10px"><table>'+
+      L.accounts.map(function(c,i){return '<tr><td>'+esc(c)+'</td><td class="r"><button class="sm bad" onclick="delName(\'account\','+i+')">Delete</button></td></tr>';}).join('')+'</table></div>';
+  } else if(SU==='lists'){
+    var box=function(title,list,key){return '<div class="card"><h3>'+title+'</h3><div class="chips" style="margin:10px 0">'+list.map(function(v,i){return '<span class="pill done" style="font-size:13px;padding:5px 10px">'+esc(v)+' <a href="#" style="color:var(--stop)" onclick="delOpt(\''+key+'\','+i+');return false">✕</a></span>';}).join('')+'</div><div class="row"><input id="o_'+key+'" placeholder="New value" style="flex:1"><button class="acc" onclick="addOpt(\''+key+'\')">Add</button></div></div>';};
+    h+='<div class="grid g2">'+box('Advance modes',L.advModes,'advance_mode')+box('Settlement modes',L.setModes,'settle_mode')+'</div>';
+  } else {
+    h+='<div class="empty">Loading...</div>';
+    $('main').innerHTML=h;
+    A('audit',{}).then(function(r){
+      AUD=r.list;
+      $('main').innerHTML=h.replace('<div class="empty">Loading...</div>','')+(AUD.length?'<div class="tw"><table><tr><th>When</th><th>Who</th><th>What</th><th>Record</th><th></th></tr>'+AUD.map(function(a,i){
+        return '<tr><td class="nw">'+dt(a.at)+'</td><td>'+esc(a.by)+'</td><td><b>'+esc(a.action)+'</b></td><td>'+esc(a.rid)+'</td><td class="r">'+(a.old||a.new?'<button class="sm ghost" onclick="showAud('+i+')">Details</button>':'')+'</td></tr>';}).join('')+'</table></div>':'<div class="card empty">No changes logged yet.</div>');
+    }).catch(fail);
+    return;
+  }
+  $('main').innerHTML=h;
+}
+var AUD=[];
+function showAud(i){
+  var a=AUD[i], j=function(x){return x?'<pre>'+esc(JSON.stringify(x,null,2))+'</pre>':'<div class="sub">-</div>';};
+  $('dlg').innerHTML='<div class="box sm" style="max-width:640px"><div class="head"><h2>'+esc(a.action)+' · '+esc(a.rid)+'</h2></div><div class="sub">'+dt(a.at)+' · '+esc(a.by)+'</div><label>Before</label>'+j(a.old)+'<label>After</label>'+j(a.new)+'<div class="row" style="margin-top:12px"><button class="ghost" onclick="closeForm()">Close</button></div></div>';
+  $('dlg').classList.remove('hide');
+}
+function setupCall(p,msg){ return A('setup',p).then(function(r){ if(!r.ok){toast(r.msg);return r;} toast(msg||'Saved'); drawSetup(); return r; }).catch(fail); }
+function editDriver(id){
+  var d=LISTS.drivers.filter(function(x){return x.id===id;})[0]||{name:'',username:'',status:'Active',account:''};
+  openForm(id?'Edit driver '+id:'Add driver',[
+    {k:'name',l:'Name',t:'text',v:d.name},{k:'username',l:'User (login name)',t:'text',v:d.username},
+    {k:'pin',l:id?'New PIN (leave empty to keep the old one)':'PIN (4 or more characters)',t:'text',ph:id?'unchanged':''},
+    {k:'status',l:'Status',t:'select',o:['Active','Inactive'],v:d.status},{k:'account',l:'ERP advance account',t:'text',v:d.account}
+  ],function(v){ v.kind='driver'; v.op='save'; v.id=id; return A('setup',v); },function(){ toast('Saved'); drawSetup(); });
+}
+function editAdmin(id){
+  var d=LISTS.admins.filter(function(x){return x.id===id;})[0]||{name:'',username:'',status:'Active'};
+  openForm(id?'Edit admin '+id:'Add admin',[
+    {k:'name',l:'Name',t:'text',v:d.name},{k:'username',l:'User (login name)',t:'text',v:d.username},
+    {k:'pin',l:id?'New PIN (leave empty to keep the old one)':'PIN (4 or more characters)',t:'text',ph:id?'unchanged':''},
+    {k:'status',l:'Status',t:'select',o:['Active','Inactive'],v:d.status}
+  ],function(v){ v.kind='admin'; v.op='save'; v.id=id; return A('setup',v); },function(){ toast('Saved'); drawSetup(); });
+}
+function editVeh(id){
+  var d=LISTS.vehicles.filter(function(x){return x.id===id;})[0]||{id:'',no:'',type:'',base:0,status:'Active'};
+  openForm(id?'Edit vehicle '+id:'Add vehicle',[
+    id?{k:'idv',l:'Vehicle ID',t:'text',v:id}:{k:'idv',l:'Vehicle ID (for example R08)',t:'text'},
+    {k:'no',l:'Vehicle number',t:'text',v:d.no},{k:'type',l:'Type',t:'text',v:d.type},{k:'base',l:'Baseline KM (starting odometer)',t:'number',v:d.base},
+    {k:'status',l:'Status',t:'select',o:['Active','Inactive'],v:d.status}
+  ],function(v){ v.kind='vehicle'; v.op='save'; v.id=id||v.idv; return A('setup',v); },function(){ toast('Saved'); drawSetup(); });
+}
+function addName(kind,inp){ var v=$(inp).value.trim(); if(!v) return; setupCall({kind:kind,op:'save',value:v},'Added'); }
+function delName(kind,i){
+  var v=(kind==='customer'?LISTS.customers:LISTS.accounts)[i];
+  if(!confirm('Delete "'+v+'"?')) return; setupCall({kind:kind,op:'delete',value:v},'Deleted');
+}
+function addOpt(key){ var v=$('o_'+key).value.trim(); if(!v) return; setupCall({kind:'option',op:'save',list:key,value:v},'Added'); }
+function delOpt(key,i){
+  var v=(key==='advance_mode'?LISTS.advModes:LISTS.setModes)[i];
+  if(!confirm('Remove "'+v+'"?')) return; setupCall({kind:'option',op:'delete',list:key,value:v},'Removed');
+}
+
+/* ---------- start ---------- */
+if(TOK){ start(); }
+</script>
+</body>
+</html>
