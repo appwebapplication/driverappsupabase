@@ -110,8 +110,8 @@
 
 <script>
 /* ---------- Supabase connection (same two values as index.html) ---------- */
-var SB_URL='https://fjcboitywnifzyarjgkr.supabase.co';        // for example https://abcdxyz.supabase.co
-var SB_KEY='sb_publishable_o0UCetA6Uv-bV8OJ-4RLgA_4Zr9_ZFV';    // the anon / publishable key (safe to keep in this page)
+var SB_URL='PASTE_PROJECT_URL';
+var SB_KEY='PASTE_ANON_PUBLIC_KEY';
 
 function $(i){return document.getElementById(i);}
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){return null;}}
@@ -288,7 +288,7 @@ function drawTrip(){
     '<div class="sub">'+dt(t.start)+(t.end?' → '+dt(t.end):'')+' · KM '+kmf(t.sk)+(t.ek!=null?' → '+kmf(t.ek)+' ('+kmf(t.tk)+' km)':'')+'</div>'+
     (t.sname||t.ename?'<div class="sub">'+esc(t.sname||'-')+(t.ename?' → '+esc(t.ename):'')+'</div>':'')+'</div><button class="ghost" onclick="closeTrip()">Close</button></div>';
   h+='<div class="row" style="margin-bottom:12px"><button class="sm" onclick="editTrip()">Edit trip</button>'+(t.running?'<button class="sm acc" onclick="endTripAdmin()">End trip</button>':'')+
-    '<button class="sm bad" onclick="delTrip()">Delete trip</button></div>';
+    '<button class="sm ghost" onclick="dlErp()"'+(t.running?' disabled title="Trip is still running"':'')+'>ERP CSV</button><button class="sm bad" onclick="delTrip()">Delete trip</button></div>';
   h+='<div class="grid g4"><div class="stat"><span>Advance</span><b>'+rupee(t.adv)+'</b></div><div class="stat"><span>Expense</span><b>'+rupee(t.exp)+'</b></div>'+
     '<div class="stat"><span>Balance</span><b class="'+(t.bal>=0?'pos':'neg')+'">'+rupee(t.bal)+'</b></div>'+
     '<div class="stat"><span>Settled</span><b>'+rupee(Math.abs(t.sa))+'</b><div class="sub">Left '+rupee(Math.abs(t.rem))+(t.pend>0?' · waiting '+rupee(t.pend):'')+'</div></div></div>';
@@ -366,6 +366,34 @@ function delPhoto(id,seq){
 }
 
 
+
+/* ---------- ERP CSV (ERPNext "Bulk Edit Accounting Entries") for one finished trip ---------- */
+var ERP_CC='Main - RFPL', ERP_SUFFIX=' - RFPL', ERP_NO_SUFFIX={'Cleaner Batha':1};
+function erpAcct(cat){ return ERP_NO_SUFFIX[cat]?cat:cat+ERP_SUFFIX; }
+function dlErp(){
+  var t=T.trip;
+  if(t.running){ toast('Trip is still running'); return; }
+  var drv=LISTS.drivers.filter(function(d){return d.id===t.driverId;})[0], acct=drv&&drv.account;
+  if(!acct){ toast('Driver has no ERP advance account. Add it in Setup > Drivers.'); return; }
+  var by={}, order=[], total=0;
+  T.expenses.forEach(function(e){ var a=erpAcct(e.cat); if(!(a in by)){by[a]=0;order.push(a);} by[a]=r2(by[a]+e.amt); });
+  if(!order.length){ toast('No expenses on this trip'); return; }
+  order.forEach(function(a){ total=r2(total+by[a]); });
+  var L=['Bulk Edit Accounting Entries,,,,,,,',
+    'Account,Cost Center,Account Currency,Exchange Rate,Debit,Debit in Company Currency,Credit,Credit in Company Currency',
+    'account,cost_center,account_currency,exchange_rate,debit_in_account_currency,debit,credit_in_account_currency,credit',
+    ' ,If Income or Expense , , , , , , ',
+    'The CSV format is case sensitive,,,,,,,',
+    'Do not edit headers which are preset in the template,,,,,,,',
+    '------,,,,,,,'];
+  L.push([acct,ERP_CC,'INR',1,'','',total,total].map(csvCell).join(','));
+  order.forEach(function(a){ L.push([a,ERP_CC,'INR',1,by[a],by[a],'',''].map(csvCell).join(',')); });
+  var text=L.join('\n')+'\n', a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([text],{type:'text/csv;charset=utf-8'})); a.download='Accounting_Entries_'+t.id+'.csv';
+  document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},800);
+  toast('Downloaded '+a.download);
+}
+
 /* ---------- photos ---------- */
 function viewPhoto(u){
   $('dlg').innerHTML='<div class="box sm" style="max-width:720px;text-align:center"><img src="'+esc(u)+'" alt="Receipt" style="max-width:100%;max-height:75vh;border-radius:8px"><div class="row" style="margin-top:12px;justify-content:center"><button onclick="dlPhoto(\''+esc(u)+'\',\'receipt.jpg\')">Download</button><button class="ghost" onclick="closeForm()">Close</button></div></div>';
@@ -428,7 +456,7 @@ function drawExport(){
     '<div class="sub" style="margin-top:8px">Dates filter by trip start date (settlements by settlement date).</div></div>';
   h+='<div class="sec"><h2>Download CSV</h2></div><div class="grid g3">'+DATASETS.map(function(d){
     return '<div class="card"><h3>'+d[1]+'</h3><div class="sub" style="margin:4px 0 10px">'+d[2]+'</div><button onclick="exportCsv(\''+d[0]+'\',this)">Download CSV</button></div>';}).join('')+
-    '<div class="card"><h3>ERP journal CSV</h3><div class="sub" style="margin:4px 0 0">One trip at a time for ERPNext. Coming next, once the exact CSV columns are confirmed.</div></div></div>';
+    '<div class="card"><h3>ERP journal CSV</h3><div class="sub" style="margin:4px 0 0">Open a finished trip (Trips tab) and tap <b>ERP CSV</b>.</div></div></div>';
   $('main').innerHTML=h;
 }
 function readXF(){ XF={from:$('x_from').value,to:$('x_to').value,driver:$('x_drv').value,vehicle:$('x_veh').value}; return XF; }
