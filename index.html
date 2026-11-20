@@ -164,19 +164,21 @@
   .sbar.ok { background: rgba(16,185,129,.15); color: #047857; }
   .sbar.part { background: rgba(249,115,22,.15); color: #C2410C; }
   .sbar.wait { background: var(--inp); color: var(--mute); }
-  .balcard { background: var(--card); border-radius: 14px; padding: 14px; margin-top: 10px; box-shadow: var(--shadow); }
+  .balcard { background: linear-gradient(135deg, #0F172A 0%, #1E293B 60%, #334155 100%); color: #fff; border-radius: 18px; padding: 18px 16px; margin-top: 10px; box-shadow: 0 10px 24px rgba(15,23,42,.22); }
   .balcard .bhead { text-align: center; }
-  .balcard .bl { display: block; font-size: 12px; font-weight: 600; color: var(--mute); text-transform: uppercase; letter-spacing: .3px; }
+  .balcard .bl { display: block; font-size: 12px; font-weight: 600; color: rgba(255,255,255,.65); text-transform: uppercase; letter-spacing: .3px; }
   .balcard .bbig { font-size: 34px; font-weight: 800; letter-spacing: -.8px; line-height: 1.15; margin-top: 2px; text-align: center; }
   .balcard .sbar { text-align: center; }
-  .balcard .bbig small { font-size: 13px; font-weight: 700; letter-spacing: 0; color: var(--mute); margin-left: 4px; }
+  .balcard .bbig small { font-size: 13px; font-weight: 700; letter-spacing: 0; color: rgba(255,255,255,.7); margin-left: 4px; }
   .balcard .bsub { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-  .balcard .bsub > div { padding: 4px 2px; }
+  .balcard .bsub > div { padding: 8px 10px; background: rgba(255,255,255,.08); border-radius: 12px; }
+  .balcard .bbig.neg { color: #FCA5A5; } .balcard .bbig.pos { color: #6EE7B7; }
+  .balcard .sbar.wait { background: rgba(255,255,255,.12); color: #fff; }
   .fpanel { background: var(--card); border-radius: 14px; padding: 14px; margin-bottom: 12px; box-shadow: var(--shadow); }
   .flab { font-size: 12px; font-weight: 700; color: var(--mute); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
   .fline { color: var(--mute); font-size: 13px; margin: 0 2px 10px; }
   .fline a { color: var(--ink); font-weight: 700; }
-  .balcard .bsub small { display: block; font-size: 12px; font-weight: 600; color: var(--mute); text-transform: uppercase; }
+  .balcard .bsub small { display: block; font-size: 12px; font-weight: 600; color: rgba(255,255,255,.6); text-transform: uppercase; }
   .balcard .bsub b { font-size: 14px; font-weight: 800; }
   .tc-r { display: flex; align-items: center; gap: 6px; }
   .kmb { background: var(--ink); color: #fff; border-radius: 8px; padding: 2px 9px; font-size: 13px; font-weight: 800; letter-spacing: -.2px; white-space: nowrap; }
@@ -832,7 +834,7 @@ function fabUpdate(){
   var f=$('fab'), t=(CUR==='detail'&&CURT&&!$('appBox').classList.contains('hide'))?findTrip(CURT):null;
   if(!t){ f.classList.add('hide'); return; }
   f.innerHTML=(t.running?'<button onclick="fabAdd(\'stp\')">+ Stop</button>':'')+
-    '<button class="accent" onclick="fabAdd(\'adv\')">+ Advance</button><button class="accent" onclick="fabAdd(\'exp\')">+ Expense</button>';
+    '<button class="accent" onclick="fabAdd(\'exp\')">+ Expense</button>';
   f.classList.remove('hide');
 }
 function fabAdd(k){
@@ -849,6 +851,7 @@ function listHtml(t){
       return '<div class="item'+(a.pending?' tmp':'')+'"><div class="ico a">💰</div><div class="mid"><b>'+rupee(a.amt)+'</b><div>'+
         esc(a.mode)+(a.remarks?' · '+esc(a.remarks):'')+'</div></div><div class="r">'+(a.pending?'sending…':sdate(a.date))+'</div></div>';
     }).join(''):'<div class="empty-note">No advances yet.</div>';
+    list='<button class="ghost" style="margin:0 0 10px" onclick="openAdv(CURT)">+ Add advance</button>'+list;
   } else {
     list=t.expList.length?t.expList.map(function(e){
       var n=rcount(e), word=n>1?' receipts':' receipt';
