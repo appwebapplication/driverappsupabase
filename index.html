@@ -625,7 +625,7 @@ function r2(n){return Math.round(n*100)/100;}
 function dt(ms){return ms?new Date(ms).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'-';}
 function dd(ms){return ms?new Date(ms).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}):'';}
 function mapUrl(l){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(l);}
-function cls(b){return b>=0?'pos':'neg';}
+function cls(b){return b>0.004?'neg':b<-0.004?'pos':'';}   // money to return = red, money to receive = green
 function toast(t){var e=$('toast');e.textContent=t;e.classList.toggle('ok',/saved|submitted/i.test(t));if(/saved|submitted/i.test(t)){try{navigator.vibrate&&navigator.vibrate(30);}catch(x){}}e.classList.remove('hide');setTimeout(function(){e.classList.add('hide');},2500);}
 function findTrip(id){ return DATA ? DATA.trips.filter(function(t){return t.id===id;})[0] : null; }
 function genId(p){ return p+'-'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,6).toUpperCase(); }
