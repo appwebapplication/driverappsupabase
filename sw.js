@@ -1,5 +1,5 @@
 // Opens the app page from phone memory, then updates it quietly (new version shows on the next open)
-var C = 'tripledger-sb-v1';
+var C = 'tripledger-sb-v2';
 var FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png'];
 
 self.addEventListener('install', function (e) {
