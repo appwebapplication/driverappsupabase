@@ -162,17 +162,17 @@
   .tc-money { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; font-size: 17px; }
   .tc-money small { display: block; color: var(--mute); font-size: 12px; font-weight: 600; text-transform: uppercase; }
   .tc-money b { font-weight: 700; }
-  .sbar { margin-top: 8px; padding: 6px 10px; border-radius: 8px; font-size: 13px; font-weight: 700; }
+  .ar { margin-top: 8px; padding: 6px 10px; border-radius: 8px; font-size: 13px; font-weight: 700; }
   .erptick { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; margin-left:6px; border-radius:50%; background:var(--go); color:#fff; font-size:13px; font-weight:800; }
-  .sbar.ok { background: rgba(16,185,129,.15); color: #047857; }
-  .sbar.part { background: rgba(249,115,22,.15); color: #C2410C; }
-  .sbar.wait { background: var(--inp); color: var(--mute); }
+  .ar.ok { background: rgba(16,185,129,.15); color: #047857; }
+  .ar.part { background: rgba(249,115,22,.15); color: #C2410C; }
+  .ar.wait { background: var(--inp); color: var(--mute); }
   .balcard { --bt: var(--card); background: var(--bt); color: var(--ink); border-radius: 18px; padding: 18px 16px; margin-top: 10px; box-shadow: var(--shadow); }
   .balcard.rcv { --bt: #E8F8F1; } .balcard.ret { --bt: #FDECEC; }
   .balcard .bhead { text-align: center; }
   .balcard .bl { display: block; font-size: 12px; font-weight: 600; color: var(--mute); text-transform: uppercase; letter-spacing: .3px; }
   .balcard .bbig { font-size: 34px; font-weight: 800; letter-spacing: -.8px; line-height: 1.15; margin-top: 2px; text-align: center; }
-  .balcard .sbar { text-align: center; }
+  .balcard .ar { text-align: center; }
   .balcard .bbig small { font-size: 13px; font-weight: 700; letter-spacing: 0; color: var(--mute); margin-left: 4px; }
   .balcard .bsub { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
   .balcard .bsub > div { padding: 8px 10px; background: rgba(255,255,255,.75); border-radius: 12px; }
@@ -314,9 +314,9 @@
   .tc-money { margin-top:10px; padding-top:10px; border-top:1px solid rgba(226,232,240,.7); gap:6px; font-size:15px; }
   .tc-money small { font-size:10px; letter-spacing:.08em; font-weight:700; }
   .tc-money b { font-weight:800; }
-  .sbar { margin-top:10px; border-radius:10px; padding:6px 12px; font-size:12px; font-weight:700; text-align:left; }
-  .sbar.ok { background:var(--mint); border:1px solid rgba(167,243,208,.7); color:var(--go); }
-  .sbar.part { background:#FFEDD5; color:#C2410C; } .sbar.wait { background:#F1F5F9; color:var(--mute); }
+  .ar { margin-top:10px; border-radius:10px; padding:6px 12px; font-size:12px; font-weight:700; text-align:left; }
+  .ar.ok { background:var(--mint); border:1px solid rgba(167,243,208,.7); color:var(--go); }
+  .ar.part { background:#FFEDD5; color:#C2410C; } .ar.wait { background:#F1F5F9; color:var(--mute); }
 
   .hero { background:linear-gradient(135deg,#0F172A,#1E293B,#0F172A); border-radius:18px; padding:14px; margin-bottom:10px; box-shadow:0 4px 20px -2px rgba(15,23,42,.18); }
   .hero::before { background:radial-gradient(circle,rgba(234,88,12,.35),transparent 70%); right:-30px; top:-30px; }
@@ -634,9 +634,10 @@
 /* ---------- server calls (Supabase) ----------
    The app calls SQL functions in your Supabase project with the same names and answers as before.
    Fill in the two lines below (Supabase > Project Settings > API). */
-var SB_URL='PASTE_PROJECT_URL';        // for example https://abcdxyz.supabase.co
-var SB_KEY='PASTE_ANON_PUBLIC_KEY';    // the anon / publishable key (safe to keep in this page)
+var SB_URL='https://fjcboitywnifzyarjgkr.supabase.co';        // for example https://abcdxyz.supabase.co
+var SB_KEY='sb_publishable_o0UCetA6Uv-bV8OJ-4RLgA_4Zr9_ZFV';    // the anon / publishable key (safe to keep in this page)
 
+  
 var RPC={
   login:['api_login',['p_user','p_pin']],
   sync:['api_sync',['p_token','p_all']],
