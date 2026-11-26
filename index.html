@@ -361,6 +361,11 @@
   .nav button.on { background:var(--ink); color:#fff; }
   .nav button.on span { border-bottom:0; font-weight:700; }
   .actbar { display:none !important; }
+  .pen { width:32px; height:32px; min-width:32px; margin:0 0 0 6px; padding:0; border-radius:50%; background:var(--bg); color:var(--mute); font-size:15px; font-weight:700; box-shadow:none; flex:none; }
+  .rt-b { position:relative; }
+  .rt-b .pen { position:absolute; top:8px; right:8px; margin:0; width:28px; height:28px; min-width:28px; font-size:13px; }
+  .danger { background:#fff; color:var(--stop); box-shadow:inset 0 0 0 1px #FECDD3; }
+  .danger.arm { background:var(--stop); color:#fff; box-shadow:none; }
 
   .toast { left:50%; right:auto; transform:translateX(-50%); width:auto; max-width:90vw; border-radius:999px; padding:9px 16px; font-size:13px; font-weight:600; bottom:80px; }
 </style>
@@ -496,7 +501,7 @@
     <div id="advView" class="hide">
       <div class="head">
         <button class="back" onclick="backToTrip()">←</button>
-        <div><h1>Add advance</h1><div class="sub" id="aInfo"></div></div>
+        <div><h1 id="aTitle">Add advance</h1><div class="sub" id="aInfo"></div></div>
       </div>
       <div class="card">
         <label>Amount</label>
@@ -508,13 +513,14 @@
         <input id="aRem" maxlength="200">
       </div>
       <button id="aGo" onclick="saveAdv()">Save advance</button>
+      <button id="aDel" class="ghost danger hide" onclick="delTap(this,delAdv)">Delete advance</button>
       <div class="err" id="aMsg"></div>
     </div>
 
     <div id="expView" class="hide">
       <div class="head">
         <button class="back" onclick="backToTrip()">←</button>
-        <div><h1>Add expense</h1><div class="sub" id="xInfo"></div></div>
+        <div><h1 id="xTitle">Add expense</h1><div class="sub" id="xInfo"></div></div>
       </div>
       <div class="card">
         <label>Category</label>
@@ -534,13 +540,14 @@
         <div id="xCnt" class="sub pcount"></div>
       </div>
       <button id="xGo" onclick="saveExp()">Save expense</button>
+      <button id="xDel" class="ghost danger hide" onclick="delTap(this,delExp)">Delete expense</button>
       <div class="err" id="xMsg"></div>
     </div>
 
     <div id="stopView" class="hide">
       <div class="head">
         <button class="back" onclick="backToTrip()">←</button>
-        <div><h1>Add route stop</h1><div class="sub" id="pInfo"></div></div>
+        <div><h1 id="pTitle">Add route stop</h1><div class="sub" id="pInfo"></div></div>
       </div>
       <div class="card">
         <label for="cQ">Customer</label>
@@ -554,10 +561,31 @@
         <input id="pNote" maxlength="300">
       </div>
       <button id="pGo" onclick="saveStop()">Save stop</button>
+      <button id="pDel" class="ghost danger hide" onclick="delTap(this,delStop)">Delete stop</button>
       <div class="err" id="pMsg"></div>
-      <div id="pLoc" class="sub" style="margin-top:10px">Looking for location...</div>
-      <button class="ghost" onclick="testLoc('pLoc')">Retry location</button>
-      <div id="pMap"></div>
+      <div id="pLocBox">
+        <div id="pLoc" class="sub" style="margin-top:10px">Looking for location...</div>
+        <button class="ghost" onclick="testLoc('pLoc')">Retry location</button>
+        <div id="pMap"></div>
+      </div>
+    </div>
+
+    <div id="teditView" class="hide">
+      <div class="head">
+        <button class="back" onclick="backToTrip()">←</button>
+        <div><h1>Edit trip start</h1><div class="sub" id="tInfo"></div></div>
+      </div>
+      <div class="card">
+        <label>Vehicle</label>
+        <div id="tVeh" class="chips" style="grid-template-columns:repeat(2,1fr)"></div>
+        <label for="tKm">Start KM</label>
+        <input id="tKm" type="number" inputmode="decimal" step="any">
+        <div class="sub" id="tHint" style="margin-top:4px"></div>
+      </div>
+      <button id="tGo" onclick="saveTripEdit()">Save changes</button>
+      <button id="tDel" class="ghost danger" onclick="delTap(this,delTrip)">Delete trip</button>
+      <div class="sub" style="margin-top:8px">Delete trip lets you start a new trip.</div>
+      <div class="err" id="tMsg"></div>
     </div>
 
   </div>
@@ -606,8 +634,8 @@
 /* ---------- server calls (Supabase) ----------
    The app calls SQL functions in your Supabase project with the same names and answers as before.
    Fill in the two lines below (Supabase > Project Settings > API). */
-var SB_URL='https://fjcboitywnifzyarjgkr.supabase.co';        // for example https://abcdxyz.supabase.co
-var SB_KEY='sb_publishable_o0UCetA6Uv-bV8OJ-4RLgA_4Zr9_ZFV';    // the anon / publishable key (safe to keep in this page)
+var SB_URL='PASTE_PROJECT_URL';        // for example https://abcdxyz.supabase.co
+var SB_KEY='PASTE_ANON_PUBLIC_KEY';    // the anon / publishable key (safe to keep in this page)
 
 var RPC={
   login:['api_login',['p_user','p_pin']],
@@ -618,7 +646,8 @@ var RPC={
   addExpense:['api_add_expense',['p_token','p']],
   addStop:['api_add_stop',['p_token','p']],
   setPlace:['api_set_place',['p_token','p']],
-  addSettlement:['api_add_settlement',['p_token','p']]
+  addSettlement:['api_add_settlement',['p_token','p']],
+  editItem:['api_driver_edit',['p_token','p']]
 };
 function sbHead(extra){
   var h={'apikey':SB_KEY}, k;
@@ -636,7 +665,7 @@ function sbCall(fn,body){
 /* receipt photos go straight to Supabase Storage, then their links are saved with the expense */
 function sbReceipts(args){
   var tok=args[0], p=args[1], id=p.id, n=p.n, photos=p.photos||[];
-  var base=SB_URL+'/storage/v1/object/', names=photos.map(function(x,i){ return id+'-'+(n+i+1)+'.jpg'; });
+  var base=SB_URL+'/storage/v1/object/', names=photos.map(function(x,i){ return id+'-'+(n+i+1)+(p.tag?'-'+p.tag:'')+'.jpg'; });
   function up(i){
     return fetch(photos[i]).then(function(r){ return r.blob(); }).then(function(b){
       return fetch(base+'receipts/'+names[i],{method:'POST',headers:sbHead({'Content-Type':'image/jpeg'}),body:b});
@@ -683,7 +712,7 @@ var RUN=(function(){
 })();
 
 var KEY='driver_token', DK='driver_data', DATA=null, POS=null, BUSY=false, SEL='', ETID='', ESK=0;
-var CURT='', ATID='', AMODE='', ADVID='', PEND=0, XTID='', XID='', XPH=[];
+var CURT='', ATID='', AMODE='', ADVID='', PEND=0, XTID='', XID='', XPH=[], XOLD=[], EDIT=null, TSEL='', DELT=null;
 var MAXPH=5, BL=[], BI=0, CUR='home', TAB='stp';
 var PTID='', PID='', CSEL='', PRET='No';
 var WID=null, PBOX='', LASTMAP=null, LALERT=false, MAPON=false;   // live location: watch id, which screen box, last map position
@@ -694,7 +723,7 @@ var L_AGAIN='again', RK='driver_reload';   // RK: remembers the screen to reopen
 function $(i){return document.getElementById(i);}
 function show(id){['loading','loginBox','appBox'].forEach(function(x){$(x).classList.toggle('hide',x!==id);}); navSync();}
 
-var VIEWS=['home','start','end','detail','adv','exp','stop','profile','stl','sf'];
+var VIEWS=['home','start','end','detail','adv','exp','stop','tedit','profile','stl','sf'];
 function navSync(){
   var on=!$('appBox').classList.contains('hide');
   $('nav').classList.toggle('hide', !on || ['home','detail','profile','stl'].indexOf(CUR)<0);
@@ -718,7 +747,7 @@ window.addEventListener('popstate',function(){
   if($('appBox').classList.contains('hide')) return;
   if(!$('big').classList.contains('hide')){ closeBig(); try{history.pushState({a:1},'');}catch(e){} }
   else if(!$('locAlert').classList.contains('hide')){ closeLocAlert(); try{history.pushState({a:1},'');}catch(e){} }
-  else if(CUR==='adv'||CUR==='exp'||CUR==='stop') backToTrip();
+  else if(CUR==='adv'||CUR==='exp'||CUR==='stop'||CUR==='tedit') backToTrip();
   else if(CUR==='detail') detailBack();
   else if(CUR==='sf') renderStl();
   else if(CUR==='start'||CUR==='end'||CUR==='profile'||CUR==='stl') showHome();
@@ -923,12 +952,13 @@ function showRc(id){
 }
 
 /* ---------- route timeline (Start -> stops -> End) ---------- */
-function rtNode(cls,dot,kick,title,sub,loc,tmp){
+function rtNode(cls,dot,kick,title,sub,loc,tmp,editId){
   return '<div class="rt'+(tmp?' tmp':'')+'"><div class="rt-n '+cls+'">'+dot+'</div>'+
     '<div class="rt-b"><div class="rt-k">'+kick+'</div>'+
     '<div class="rt-t">'+esc(title)+'</div>'+
     (sub?'<div class="rt-s">'+sub+'</div>':'')+
     (loc?'<a target="_blank" rel="noopener" href="'+mapUrl(loc)+'">📍 Open in Maps</a>':'')+
+    (editId?'<button class="pen" aria-label="Edit" onclick="editStop(\''+esc(jq(editId))+'\')">✎</button>':'')+
     '</div></div>';
 }
 function routeHtml(t){
@@ -937,7 +967,7 @@ function routeHtml(t){
   (t.stops||[]).forEach(function(s){
     var place=s.name?esc(s.name):(s.pending?'Getting place name…':'');
     var sub=(place?'📍 '+place+' · ':'')+dt(s.ts)+(s.ret==='Yes'?' · ↩ Returned':'')+(s.notes?' · '+esc(s.notes):'');
-    h+=rtNode('p',esc(s.seq),'Stop '+esc(s.seq),s.cust,sub,s.loc,s.pending);
+    h+=rtNode('p',esc(s.seq),'Stop '+esc(s.seq),s.cust,sub,s.loc,s.pending,(t.running&&!s.pending)?s.id:'');
   });
   if(t.running){
     h+='<div class="rt"><div class="rt-n w">➜</div><div class="rt-b"><div class="rt-t">On the way</div><div class="rt-s">Tap + Add stop when you reach a customer</div></div></div>';
@@ -968,7 +998,8 @@ function listHtml(t){
   } else if(TAB==='adv'){
     list=t.advList.length?t.advList.map(function(a){
       return '<div class="item'+(a.pending?' tmp':'')+'"><div class="ico a">💰</div><div class="mid"><b>'+rupee(a.amt)+'</b><div>'+
-        esc(a.mode)+(a.remarks?' · '+esc(a.remarks):'')+'</div></div><div class="r">'+(a.pending?'sending…':sdate(a.date))+'</div></div>';
+        esc(a.mode)+(a.remarks?' · '+esc(a.remarks):'')+'</div></div><div class="r">'+(a.pending?'sending…':sdate(a.date))+'</div>'+
+        (t.running&&!a.pending?'<button class="pen" aria-label="Edit" onclick="editAdv(\''+esc(jq(a.id))+'\')">✎</button>':'')+'</div>';
     }).join(''):'<div class="empty-note">No advances yet.</div>';
     list+='<button class="cta" onclick="openAdv(CURT)">＋ Advance</button>';
   } else {
@@ -980,7 +1011,8 @@ function listHtml(t){
           (e.pending?' · sending…':e.upl?' · uploading '+n+word+'…':
             retry?' · <a class="bad" href="#" onclick="retryReceipt(\''+q+'\',\''+esc(jq(e.id))+'\');return false">not uploaded, retry</a>':
             (n?' · <a href="#" onclick="showRc(\''+esc(jq(e.id))+'\');return false">'+n+word+'</a>':''))+
-        '</div></div><div class="r"><b style="font-size:17px">'+rupee(e.amt)+'</b></div></div>';
+        '</div></div><div class="r"><b style="font-size:17px">'+rupee(e.amt)+'</b></div>'+
+        (t.running&&!e.pending&&!e.upl&&!RFAIL[e.id]?'<button class="pen" aria-label="Edit" onclick="editExp(\''+esc(jq(e.id))+'\')">✎</button>':'')+'</div>';
     }).join(''):'<div class="empty-note">No expenses yet.</div>';
     list+='<button class="cta" onclick="openExp(CURT)">＋ Expense</button>';
   }
@@ -1007,6 +1039,7 @@ function drawDetail(id){
       '<div class="hero-row hero-line"><span>'+dt(t.start)+' · '+km+'</span>'+
         ''+'</div>'+
     '</div>'+
+    (t.running&&!st.length&&!t.advList.length&&!t.expList.length?'<button class="ghost" onclick="openTripEdit()">✎ Edit start KM / vehicle · Delete trip</button>':'')+
     '<div class="stats">'+
       '<div class="stat"><span>Advances</span><b>'+rupee(t.adv)+'</b></div>'+
       '<div class="stat"><span>Expenses</span><b>'+rupee(t.exp)+'</b></div>'+
@@ -1033,12 +1066,13 @@ function openAdv(tid, pre){
   var t=findTrip(tid);
   if(!t){ toast('Trip not found'); return; }
   pre=pre||{};
+  EDIT=pre.edit?{k:'adv',id:pre.id}:null;
   ATID=tid;
   AMODE=pre.mode||modesList()[0]||'';
   ADVID=pre.id||genId('ADV');
   $('aInfo').innerHTML='<b>'+esc(t.id)+'</b> · '+esc(t.vno);
   $('aAmt').value=pre.amt||''; $('aRem').value=pre.remarks||''; $('aMsg').textContent='';
-  drawModes(); view('adv');
+  drawModes(); editUI(); view('adv');
 }
 
 function backToTrip(){ if(CURT){ drawDetail(CURT); view('detail'); } else showHome(); }
@@ -1058,6 +1092,7 @@ function failAdv(tid,item,why){
 }
 
 function saveAdv(){
+  if(EDIT&&EDIT.k==='adv') return saveAdvEdit();
   var amt=r2(Number($('aAmt').value)), rem=$('aRem').value.trim().slice(0,200), msg=$('aMsg');
   msg.textContent='';
   if(!(amt>0)){ msg.textContent='Enter an amount above 0'; return; }
@@ -1085,6 +1120,167 @@ function saveAdv(){
     .addAdvance(ls(KEY),{id:id,tid:tid,amt:amt,mode:mode,remarks:rem});
 }
 
+
+/* ---------- edit / delete while the trip is running (needs internet) ---------- */
+function editUI(){
+  var e=EDIT?EDIT.k:'';
+  $('aTitle').textContent=e==='adv'?'Edit advance':'Add advance'; $('aGo').textContent=e==='adv'?'Save changes':'Save advance'; $('aGo').disabled=false; $('aDel').classList.toggle('hide',e!=='adv');
+  $('xTitle').textContent=e==='exp'?'Edit expense':'Add expense'; $('xGo').textContent=e==='exp'?'Save changes':'Save expense'; $('xGo').disabled=false; $('xDel').classList.toggle('hide',e!=='exp');
+  $('pTitle').textContent=e==='stp'?'Edit route stop':'Add route stop'; $('pGo').textContent=e==='stp'?'Save changes':'Save stop'; $('pDel').classList.toggle('hide',e!=='stp');
+  $('pLocBox').classList.toggle('hide',e==='stp');
+  ['aDel','xDel','pDel','tDel'].forEach(function(i){ $(i).classList.remove('arm'); });
+  $('aDel').textContent='Delete advance'; $('xDel').textContent='Delete expense'; $('pDel').textContent='Delete stop'; $('tDel').textContent='Delete trip';
+}
+function canEdit(){
+  var t=findTrip(CURT);
+  if(!t||!t.running){ toast('Trip is not running'); return null; }
+  if(PEND>0){ toast('Wait, items are still sending'); return null; }
+  return t;
+}
+function drvEdit(btn,msgEl,busyText,idleText,p,done){
+  btn.disabled=true; btn.textContent=busyText; msgEl.textContent='';
+  RUN
+    .withSuccessHandler(function(r){
+      btn.disabled=false; btn.textContent=idleText;
+      if(r.expired){ clearAll(); show('loginBox'); $('msg').textContent='Session expired. Login again.'; return; }
+      if(!r.ok){ msgEl.textContent=r.msg; return; }
+      done(r);
+    })
+    .withFailureHandler(function(){ btn.disabled=false; btn.textContent=idleText; msgEl.textContent='No connection. Try again.'; })
+    .editItem(ls(KEY),p);
+}
+function delTap(btn,fn){   // first tap arms the button, second tap deletes
+  if(btn.classList.contains('arm')){ clearTimeout(DELT); btn.classList.remove('arm'); fn(btn); return; }
+  var old=btn.textContent; btn.classList.add('arm'); btn.textContent='Tap again to delete';
+  clearTimeout(DELT); DELT=setTimeout(function(){ btn.classList.remove('arm'); btn.textContent=old; },4000);
+}
+function afterEdit(msg){ EDIT=null; recalc(); persist(); view('detail'); render(DATA); toast(msg); }
+
+function editAdv(id){
+  var t=canEdit(); if(!t) return;
+  var a=t.advList.filter(function(x){return x.id===id;})[0]; if(!a||a.pending) return;
+  openAdv(t.id,{id:a.id,amt:a.amt,mode:a.mode,remarks:a.remarks,edit:true});
+}
+function saveAdvEdit(){
+  var amt=r2(Number($('aAmt').value)), rem=$('aRem').value.trim().slice(0,200), msg=$('aMsg'), id=EDIT.id;
+  if(!(amt>0)){ msg.textContent='Enter an amount above 0'; return; }
+  if(!AMODE){ msg.textContent='Select a mode'; return; }
+  var t=findTrip(ATID), mode=AMODE;
+  drvEdit($('aGo'),msg,'Saving…','Save changes',{kind:'advance',op:'update',id:id,f:{amount:amt,mode:mode,remarks:rem}},function(){
+    var a=t.advList.filter(function(x){return x.id===id;})[0]; if(a){ a.amt=amt; a.mode=mode; a.remarks=rem; }
+    afterEdit('Changes saved');
+  });
+}
+function delAdv(btn){
+  var t=findTrip(ATID), id=EDIT.id;
+  drvEdit(btn,$('aMsg'),'Deleting…','Delete advance',{kind:'advance',op:'delete',id:id},function(){
+    t.advList=t.advList.filter(function(x){return x.id!==id;}); afterEdit('Advance deleted');
+  });
+}
+
+function editExp(id){
+  var t=canEdit(); if(!t) return;
+  var e=t.expList.filter(function(x){return x.id===id;})[0]; if(!e||e.pending||e.upl||RFAIL[id]){ toast('Wait, photos are still uploading'); return; }
+  openExp(t.id,{id:e.id,cat:e.cat,amt:e.amt,old:rlinks(e),edit:true});
+}
+function saveExpEdit(){
+  var cat=((((DATA.accounts||[]).length)?$('xCat').value:$('xCatIn').value)||'').trim(), amt=r2(Number($('xAmt').value)), msg=$('xMsg'), btn=$('xGo'), id=EDIT.id, tag=EDIT.tag;
+  if(!cat){ msg.textContent='Select a category'; return; }
+  if(!(amt>0)){ msg.textContent='Enter an amount above 0'; return; }
+  var lim=Number(DATA.photoAbove)||0;
+  if(lim>0 && amt>lim && !(XOLD.length+XPH.length)){ msg.textContent='Receipt photo is required above '+money(lim); return; }
+  var t=findTrip(XTID), e=t&&t.expList.filter(function(x){return x.id===id;})[0];
+  if(!e){ msg.textContent='Expense not found'; return; }
+  drvEdit(btn,msg,'Saving…','Save changes',{kind:'expense',op:'update',id:id,f:{cat:cat,amount:amt,keep:XOLD}},function(r){
+    e.cat=cat; e.amt=amt; e.photo=(r.links||[]).join('\n'); XOLD=(r.links||[]).slice(); recalc(); persist();
+    if(!XPH.length){ afterEdit('Changes saved'); return; }
+    var nBefore=XOLD.length, photos=XPH.slice();
+    btn.disabled=true; btn.textContent='Uploading photos…';
+    function again(text){ btn.disabled=false; btn.textContent='Save changes'; msg.textContent='Saved, but '+text+' Tap Save changes to try again.'; showPrev(); }
+    RUN
+      .withSuccessHandler(function(x){
+        if(x.expired){ clearAll(); show('loginBox'); $('msg').textContent='Session expired. Login again.'; return; }
+        if(x.links&&x.links.length){
+          var got=x.links.length-nBefore;
+          e.photo=x.links.join('\n'); XOLD=x.links.slice(); if(got>0) XPH=XPH.slice(got); persist();
+        }
+        if(!x.ok){ again('photos were not uploaded ('+(x.msg||'error')+').'); return; }
+        XPH=[]; afterEdit('Changes saved');
+      })
+      .withFailureHandler(function(){ again('photos were not uploaded.'); })
+      .addReceipts(ls(KEY),{id:id,n:nBefore,photos:photos,tag:tag});
+  });
+}
+function delExp(btn){
+  var t=findTrip(XTID), id=EDIT.id;
+  drvEdit(btn,$('xMsg'),'Deleting…','Delete expense',{kind:'expense',op:'delete',id:id},function(){
+    t.expList=t.expList.filter(function(x){return x.id!==id;}); delete LOC[id]; delete RFAIL[id]; XPH=[]; XOLD=[]; afterEdit('Expense deleted');
+  });
+}
+
+function editStop(id){
+  var t=canEdit(); if(!t) return;
+  var s=(t.stops||[]).filter(function(x){return x.id===id;})[0]; if(!s||s.pending) return;
+  openStop(t.id,{id:s.id,cust:s.cust,notes:s.notes,ret:s.ret,edit:true});
+}
+function saveStopEdit(){
+  var msg=$('pMsg'), id=EDIT.id, note=$('pNote').value.trim().slice(0,300), ret=PRET, cust=CSEL;
+  if(!cust){ msg.textContent='Select a customer'; return; }
+  var t=findTrip(PTID);
+  drvEdit($('pGo'),msg,'Saving…','Save changes',{kind:'stop',op:'update',id:id,f:{cust:cust,notes:note,ret:ret}},function(){
+    var s=(t.stops||[]).filter(function(x){return x.id===id;})[0]; if(s){ s.cust=cust; s.notes=note; s.ret=ret; }
+    afterEdit('Changes saved');
+  });
+}
+function delStop(btn){
+  var t=findTrip(PTID), id=EDIT.id;
+  drvEdit(btn,$('pMsg'),'Deleting…','Delete stop',{kind:'stop',op:'delete',id:id},function(){
+    t.stops=(t.stops||[]).filter(function(x){return x.id!==id;}); t.stops.forEach(function(x,i){ x.seq=i+1; });
+    afterEdit('Stop deleted');
+  });
+}
+
+/* start KM / vehicle of a trip that has nothing added yet, or delete that trip */
+function openTripEdit(){
+  var t=canEdit(); if(!t) return;
+  if((t.stops||[]).length||t.advList.length||t.expList.length){ toast('Only before you add a stop, advance or expense'); return; }
+  TSEL=t.veh; $('tInfo').innerHTML='<b>'+esc(t.id)+'</b>'; $('tKm').value=t.sk; $('tMsg').textContent='';
+  $('tGo').disabled=false; $('tGo').textContent='Save changes'; $('tDel').classList.remove('arm'); $('tDel').textContent='Delete trip';
+  drawTVeh(); tHint(); view('tedit');
+}
+function drawTVeh(){
+  var t=findTrip(CURT);
+  $('tVeh').innerHTML=DATA.vehicles.map(function(v,i){
+    var off=v.busy&&v.id!==t.veh;
+    return '<button type="button" class="'+(v.id===TSEL?'on':'')+'"'+(off?' disabled':'')+' onclick="pickTVeh('+i+')">'+
+      '<b>'+esc(v.id)+'</b><br><small>'+esc(v.type)+(off?' · In use':'')+'</small></button>';
+  }).join('');
+}
+function tHint(){ var v=getVeh(TSEL); $('tHint').textContent=v?'Last End KM: '+v.minKm+' km (minimum)':''; }
+function pickTVeh(i){ var t=findTrip(CURT); TSEL=DATA.vehicles[i].id; if(TSEL!==t.veh) $('tKm').value=DATA.vehicles[i].minKm; else $('tKm').value=t.sk; drawTVeh(); tHint(); }
+function saveTripEdit(){
+  var t=findTrip(CURT), msg=$('tMsg'), kmS=$('tKm').value, km=Number(kmS), v=getVeh(TSEL);
+  if(!t) return;
+  if(!TSEL){ msg.textContent='Select a vehicle'; return; }
+  if(kmS===''||isNaN(km)||km<0){ msg.textContent='Enter a valid Start KM'; return; }
+  if(v && km<v.minKm){ msg.textContent='Start KM must be at least '+v.minKm; return; }
+  var old=t.veh;
+  drvEdit($('tGo'),msg,'Saving…','Save changes',{kind:'trip',op:'update',id:t.id,f:{veh:TSEL,sk:km}},function(r){
+    [t,DATA.running].forEach(function(x){ if(x&&x.id===t.id){ x.veh=r.veh; x.vno=r.veh; x.sk=r.sk; } });
+    if(old!==r.veh){ var a=getVeh(old), b=getVeh(r.veh); if(a) a.busy=false; if(b) b.busy=true; }
+    afterEdit('Changes saved');
+  });
+}
+function delTrip(btn){
+  var t=findTrip(CURT); if(!t) return;
+  drvEdit(btn,$('tMsg'),'Deleting…','Delete trip',{kind:'trip',op:'delete',id:t.id},function(){
+    DATA.trips=DATA.trips.filter(function(x){return x.id!==t.id;}); DATA.running=null;
+    DATA.tripCount=Math.max(0,(Number(DATA.tripCount)||1)-1);
+    var v=getVeh(t.veh); if(v) v.busy=false;
+    EDIT=null; CURT=''; recalc(); persist(); render(DATA); showHome(); toast('Trip deleted');
+  });
+}
+
 /* ---------- add expense ---------- */
 function fillCats(sel){
   var a=(DATA&&DATA.accounts)||[], s=$('xCat'), inp=$('xCatIn');
@@ -1096,14 +1292,21 @@ function fillCats(sel){
 
 
 function showPrev(){
-  $('xThumbs').innerHTML=XPH.map(function(p,i){
-    return '<div class="pwrap"><img class="thumb" src="'+p+'" onclick="bigImgs(XPH,'+i+')" alt="Receipt '+(i+1)+'">'+
+  var old=XOLD.map(function(u,i){
+    return '<div class="pwrap"><img class="thumb" src="'+esc(u)+'" onclick="bigImgs(XOLD,'+i+')" alt="Receipt '+(i+1)+'">'+
+      '<button type="button" class="pdel" onclick="delOld('+i+')">✕</button></div>';
+  }).join('');
+  $('xThumbs').innerHTML=old+XPH.map(function(p,i){
+    return '<div class="pwrap"><img class="thumb" src="'+p+'" onclick="bigImgs(XPH,'+i+')" alt="New receipt '+(i+1)+'">'+
       '<button type="button" class="pdel" onclick="delPh('+i+')">✕</button></div>';
   }).join('');
-  $('xCnt').textContent=XPH.length?XPH.length+' / '+MAXPH+' photos':'';
-  var full=XPH.length>=MAXPH;
+  var tot=XOLD.length+XPH.length;
+  $('xCnt').textContent=tot?tot+' / '+MAXPH+' photos':'';
+  var full=tot>=MAXPH;
   document.querySelectorAll('.pick button').forEach(function(b){ b.disabled=full; });
 }
+
+function delOld(i){ XOLD.splice(i,1); showPrev(); }
 
 function delPh(i){ XPH.splice(i,1); showPrev(); }
 
@@ -1126,7 +1329,7 @@ function pickPhoto(inp){
   var fs=Array.prototype.slice.call(inp.files||[]); inp.value='';
   if(!fs.length) return;
   $('xMsg').textContent='';
-  var left=MAXPH-XPH.length;
+  var left=MAXPH-XPH.length-XOLD.length;
   if(fs.length>left){ fs=fs.slice(0,left); $('xMsg').textContent='Maximum '+MAXPH+' photos'; }
   var i=0;
   (function next(){
@@ -1142,13 +1345,14 @@ function openExp(tid, pre){
   var t=findTrip(tid);
   if(!t){ toast('Trip not found'); return; }
   pre=pre||{};
-  XTID=tid; XID=pre.id||genId('EXP'); XPH=(pre.local||[]).slice();
+  EDIT=pre.edit?{k:'exp',id:pre.id,tag:Math.random().toString(36).slice(2,6)}:null;
+  XTID=tid; XID=pre.id||genId('EXP'); XPH=(pre.local||[]).slice(); XOLD=(pre.old||[]).slice();
   $('xInfo').innerHTML='<b>'+esc(t.id)+'</b> · '+esc(t.vno);
   fillCats(pre.cat||'');
   $('xAmt').value=pre.amt||''; $('xMsg').textContent='';
   var lim=Number(DATA.photoAbove)||0;
   $('xPLbl').textContent = lim>0 ? 'Receipt photos, up to 5 (required above '+money(lim)+')' : 'Receipt photos, up to 5 (optional)';
-  showPrev(); view('exp');
+  showPrev(); editUI(); view('exp');
 }
 
 function dropExp(tid,id){
@@ -1194,6 +1398,7 @@ function retryReceipt(tid,id){
 }
 
 function saveExp(){
+  if(EDIT&&EDIT.k==='exp') return saveExpEdit();
   var cat=((((DATA.accounts||[]).length)?$('xCat').value:$('xCatIn').value)||'').trim(), amt=r2(Number($('xAmt').value)), msg=$('xMsg');
   msg.textContent='';
   if(!cat){ msg.textContent='Select a category'; return; }
@@ -1270,13 +1475,14 @@ function openStop(tid, pre){
   if(!t){ toast('Trip not found'); return; }
   if(!t.running){ toast('Trip is not running'); return; }
   pre=pre||{};
+  EDIT=pre.edit?{k:'stp',id:pre.id}:null;
   PTID=tid; PID=pre.id||genId('STP'); CSEL=pre.cust||''; PRET=pre.ret||'No';
   BUSY=false;
   $('pInfo').innerHTML='<b>'+esc(t.id)+'</b> · '+esc(t.vno);
   $('cQ').value=CSEL; $('cList').classList.add('hide'); cState();
   $('pNote').value=pre.notes||''; $('pMsg').textContent='';
   $('pGo').disabled=false; $('pGo').textContent='Save stop';
-  drawRet(); view('stop'); startWatch('pLoc');
+  drawRet(); editUI(); view('stop'); if(!pre.edit) startWatch('pLoc');
 }
 
 function dropStop(tid,id){
@@ -1293,6 +1499,7 @@ function failStop(tid,item,why){
 }
 
 function saveStop(){
+  if(EDIT&&EDIT.k==='stp') return saveStopEdit();
   if(BUSY) return;
   var msg=$('pMsg'), btn=$('pGo'), ret=PRET;
   msg.textContent='';
