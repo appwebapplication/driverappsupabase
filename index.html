@@ -361,9 +361,11 @@
   .nav button.on { background:var(--ink); color:#fff; }
   .nav button.on span { border-bottom:0; font-weight:700; }
   .actbar { display:none !important; }
-  .pen { width:32px; height:32px; min-width:32px; margin:0 0 0 6px; padding:0; border-radius:50%; background:var(--bg); color:var(--mute); font-size:15px; font-weight:700; box-shadow:none; flex:none; }
+  .pen { display:flex; align-items:center; justify-content:center; width:34px; height:34px; min-width:34px; margin:0 0 0 6px; padding:0; border-radius:50%; background:#fff; border:1px solid var(--line); color:var(--ink); box-shadow:0 4px 20px -2px rgba(15,23,42,.05); flex:none; }
+  .pen svg, .hero-edit svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
   .rt-b { position:relative; }
-  .rt-b .pen { position:absolute; top:8px; right:8px; margin:0; width:28px; height:28px; min-width:28px; font-size:13px; }
+  .rt-b .pen { position:absolute; top:10px; right:10px; margin:0; width:30px; height:30px; min-width:30px; }
+  .hero .hero-edit { position:absolute; right:14px; bottom:14px; z-index:2; display:flex; align-items:center; gap:6px; width:auto; margin:0; padding:7px 12px; border-radius:999px; font-size:12px; font-weight:700; background:rgba(255,255,255,.14); color:#fff; border:1px solid rgba(255,255,255,.22); box-shadow:none; }
   .danger { background:#fff; color:var(--stop); box-shadow:inset 0 0 0 1px #FECDD3; }
   .danger.arm { background:var(--stop); color:#fff; box-shadow:none; }
 
@@ -959,7 +961,7 @@ function rtNode(cls,dot,kick,title,sub,loc,tmp,editId){
     '<div class="rt-t">'+esc(title)+'</div>'+
     (sub?'<div class="rt-s">'+sub+'</div>':'')+
     (loc?'<a target="_blank" rel="noopener" href="'+mapUrl(loc)+'">📍 Open in Maps</a>':'')+
-    (editId?'<button class="pen" aria-label="Edit" onclick="editStop(\''+esc(jq(editId))+'\')">✎</button>':'')+
+    (editId?'<button class="pen" aria-label="Edit" onclick="editStop(\''+esc(jq(editId))+'\')">'+PEN+'</button>':'')+
     '</div></div>';
 }
 function routeHtml(t){
@@ -1000,7 +1002,7 @@ function listHtml(t){
     list=t.advList.length?t.advList.map(function(a){
       return '<div class="item'+(a.pending?' tmp':'')+'"><div class="ico a">💰</div><div class="mid"><b>'+rupee(a.amt)+'</b><div>'+
         esc(a.mode)+(a.remarks?' · '+esc(a.remarks):'')+'</div></div><div class="r">'+(a.pending?'sending…':sdate(a.date))+'</div>'+
-        (t.running&&!a.pending?'<button class="pen" aria-label="Edit" onclick="editAdv(\''+esc(jq(a.id))+'\')">✎</button>':'')+'</div>';
+        (t.running&&!a.pending?'<button class="pen" aria-label="Edit" onclick="editAdv(\''+esc(jq(a.id))+'\')">'+PEN+'</button>':'')+'</div>';
     }).join(''):'<div class="empty-note">No advances yet.</div>';
     list+='<button class="cta" onclick="openAdv(CURT)">＋ Advance</button>';
   } else {
@@ -1013,7 +1015,7 @@ function listHtml(t){
             retry?' · <a class="bad" href="#" onclick="retryReceipt(\''+q+'\',\''+esc(jq(e.id))+'\');return false">not uploaded, retry</a>':
             (n?' · <a href="#" onclick="showRc(\''+esc(jq(e.id))+'\');return false">'+n+word+'</a>':''))+
         '</div></div><div class="r"><b style="font-size:17px">'+rupee(e.amt)+'</b></div>'+
-        (t.running&&!e.pending&&!e.upl&&!RFAIL[e.id]?'<button class="pen" aria-label="Edit" onclick="editExp(\''+esc(jq(e.id))+'\')">✎</button>':'')+'</div>';
+        (t.running&&!e.pending&&!e.upl&&!RFAIL[e.id]?'<button class="pen" aria-label="Edit" onclick="editExp(\''+esc(jq(e.id))+'\')">'+PEN+'</button>':'')+'</div>';
     }).join(''):'<div class="empty-note">No expenses yet.</div>';
     list+='<button class="cta" onclick="openExp(CURT)">＋ Expense</button>';
   }
@@ -1039,8 +1041,8 @@ function drawDetail(id){
       (t.erp?'<div class="hero-row" style="font-weight:700">✓ Entered in accounts · '+dd(t.erp)+'</div>':'')+
       '<div class="hero-row hero-line"><span>'+dt(t.start)+' · '+km+'</span>'+
         ''+'</div>'+
+      (t.running&&!st.length&&!t.advList.length&&!t.expList.length?'<button class="hero-edit" onclick="openTripEdit()">'+PEN+' Edit</button>':'')+
     '</div>'+
-    (t.running&&!st.length&&!t.advList.length&&!t.expList.length?'<button class="ghost" onclick="openTripEdit()">✎ Edit start KM / vehicle · Delete trip</button>':'')+
     '<div class="stats">'+
       '<div class="stat"><span>Advances</span><b>'+rupee(t.adv)+'</b></div>'+
       '<div class="stat"><span>Expenses</span><b>'+rupee(t.exp)+'</b></div>'+
@@ -1121,7 +1123,7 @@ function saveAdv(){
     .addAdvance(ls(KEY),{id:id,tid:tid,amt:amt,mode:mode,remarks:rem});
 }
 
-
+var PEN='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
 /* ---------- edit / delete while the trip is running (needs internet) ---------- */
 function editUI(){
   var e=EDIT?EDIT.k:'';
